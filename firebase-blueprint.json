@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile and role information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "displayName": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Truffle": {
+      "title": "Truffle",
+      "description": "Truffle product information",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "stock": { "type": "integer" },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["name", "price", "stock", "ownerId"]
+    },
+    "Sale": {
+      "title": "Sale Record",
+      "description": "Record of a truffle sale",
+      "type": "object",
+      "properties": {
+        "truffleId": { "type": "string" },
+        "quantity": { "type": "integer" },
+        "totalPrice": { "type": "number" },
+        "discount": { "type": "number" },
+        "isCredit": { "type": "boolean" },
+        "customerName": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "ownerId": { "type": "string" },
+        "status": { "type": "string", "enum": ["paid", "pending"] }
+      },
+      "required": ["truffleId", "quantity", "totalPrice", "ownerId", "status"]
+    },
+    "Settings": {
+      "title": "Pricing Settings",
+      "description": "Progressive pricing rules",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string" },
+        "progressivePricing": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "minQty": { "type": "integer" },
+              "price": { "type": "number" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile data"
+    },
+    "/truffles/{truffleId}": {
+      "schema": "Truffle",
+      "description": "Truffle inventory"
+    },
+    "/sales/{saleId}": {
+      "schema": "Sale",
+      "description": "Sales history"
+    },
+    "/settings/{ownerId}": {
+      "schema": "Settings",
+      "description": "User-specific pricing settings"
+    }
+  }
+}

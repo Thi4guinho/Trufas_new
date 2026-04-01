@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Fields: uid (string), email (string), role (string: 'user' | 'admin'), displayName (string)
+    //
+    // Collection: truffles
+    // Fields: name (string), price (number), stock (number), ownerId (string)
+    //
+    // Collection: sales
+    // Fields: truffleId (string), quantity (number), totalPrice (number), discount (number), 
+    //         isCredit (bool), customerName (string), date (timestamp), ownerId (string), status (string)
+    //
+    // Collection: settings
+    // Fields: ownerId (string), progressivePricing (list of maps)
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.ownerId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "thiago07bassi@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string && data.email is string &&
+             data.role in ['user', 'admin'];
+    }
+
+    function isValidTruffle(data) {
+      return data.keys().hasAll(['name', 'price', 'stock', 'ownerId']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.price is number && data.price >= 0 &&
+             data.stock is int && data.stock >= 0 &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isValidSale(data) {
+      return data.keys().hasAll(['truffleId', 'quantity', 'totalPrice', 'ownerId', 'status']) &&
+             data.truffleId is string &&
+             data.quantity is int && data.quantity > 0 &&
+             data.totalPrice is number && data.totalPrice >= 0 &&
+             data.ownerId == request.auth.uid &&
+             data.status in ['paid', 'pending'];
+    }
+
+    // Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin();
+    }
+
+    match /truffles/{truffleId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidTruffle(request.resource.data);
+      allow update: if (isDocOwner() && isValidTruffle(request.resource.data)) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /sales/{saleId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidSale(request.resource.data);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /settings/{ownerId} {
+      allow read: if isOwner(ownerId) || isAdmin();
+      allow write: if isOwner(ownerId) || isAdmin();
+    }
+  }
+}

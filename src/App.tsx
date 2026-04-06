@@ -58,224 +58,156 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const generateReceiptHTML = (sale: Sale, settings: UserSettings | null) => {
-  const date = format(sale.date.toDate(), 'dd/MM/yyyy HH:mm');
-  const businessName = settings?.businessName || 'TruffleTech';
-  const businessPhone = settings?.businessPhone || '';
-  
-  return `
-    <html>
-      <head>
-        <title>Recibo - ${businessName}</title>
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-          
-          body { 
-            font-family: 'Inter', -apple-system, sans-serif; 
-            padding: 40px; 
-            color: #1a1a1a;
-            line-height: 1.6;
-            max-width: 500px;
-            margin: 0 auto;
-          }
-          
-          .header { 
-            text-align: center; 
-            margin-bottom: 40px;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 30px;
-          }
-          
-          .brand { 
-            font-size: 28px; 
-            font-weight: 900; 
-            letter-spacing: -1px; 
-            font-style: italic;
-            margin: 0;
-            text-transform: uppercase;
-          }
-          
-          .receipt-type {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #999;
-            margin-top: 5px;
-            display: block;
-          }
-          
-          .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 40px;
-            font-size: 12px;
-          }
-          
-          .info-label {
-            color: #999;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-            display: block;
-          }
-          
-          .info-value {
-            font-weight: 700;
-            color: #1a1a1a;
-          }
-          
-          .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 40px;
-          }
-          
-          .items-table th {
-            text-align: left;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #999;
-            border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 10px;
-          }
-          
-          .items-table td {
-            padding: 15px 0;
-            font-size: 14px;
-            font-weight: 700;
-            border-bottom: 1px solid #f0f0f0;
-          }
-          
-          .total-section {
-            background: #f9f9f9;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 40px;
-          }
-          
-          .total-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-          
-          .total-label {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-          }
-          
-          .total-value {
-            font-size: 24px;
-            font-weight: 900;
-            letter-spacing: -1px;
-          }
-          
-          .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 50px;
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 10px;
-            ${sale.status === 'paid' ? 'background: #e6fcf5; color: #0ca678;' : 'background: #fff4e6; color: #f76707;'}
-          }
-          
-          .footer {
-            text-align: center;
-            font-size: 11px;
-            color: #999;
-            border-top: 1px dashed #eee;
-            padding-top: 30px;
-          }
-          
-          .footer p { margin: 5px 0; }
-          
-          @media print {
-            body { padding: 0; }
-            .no-print { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1 class="brand">${businessName}</h1>
-          <span class="receipt-type">Comprovante de Transação</span>
-        </div>
-        
-        <div class="info-grid">
-          <div>
-            <span class="info-label">Data e Hora</span>
-            <span class="info-value">${date}</span>
-          </div>
-          <div>
-            <span class="info-label">ID Transação</span>
-            <span class="info-value">#${sale.id.slice(-8).toUpperCase()}</span>
-          </div>
-          <div style="grid-column: span 2;">
-            <span class="info-label">Cliente</span>
-            <span class="info-value">${sale.customerName || 'Consumidor Final'}</span>
-          </div>
-        </div>
-        
-        <table class="items-table">
-          <thead>
-            <tr>
-              <th>Descrição do Item</th>
-              <th style="text-align: right;">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div style="font-weight: 900;">${sale.truffleName}</div>
-                <div style="font-size: 11px; color: #999; font-weight: 400;">Qtd: ${sale.quantity} un.</div>
-              </td>
-              <td style="text-align: right;">R$ ${sale.totalPrice.toFixed(2)}</td>
-            </tr>
-          </tbody>
-        </table>
-        
-        <div class="total-section">
-          <div class="total-row">
-            <span class="total-label">Valor Total</span>
-            <span class="total-value">R$ ${sale.totalPrice.toFixed(2)}</span>
-          </div>
-          <div class="status-badge">
-            ${sale.status === 'paid' ? 'Pagamento Confirmado' : 'Pagamento Pendente'}
-          </div>
-        </div>
-        
-        <div class="footer">
-          <p><strong>${businessName}</strong></p>
-          ${businessPhone ? `<p>WhatsApp: ${businessPhone}</p>` : ''}
-          <p style="margin-top: 15px;">Obrigado pela preferência!</p>
-          <p style="font-size: 9px; margin-top: 20px; opacity: 0.5;">Documento gerado eletronicamente via TruffleTech</p>
-        </div>
-        
-        <script>
-          window.onload = () => {
-            window.print();
-            setTimeout(() => window.close(), 500);
-          };
-        </script>
-      </body>
-    </html>
-  `;
+const normalizeName = (name: string) => {
+  if (!name) return '';
+  return name
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 };
 
-const printReceipt = (sale: Sale, settings: UserSettings | null) => {
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) return;
-  printWindow.document.write(generateReceiptHTML(sale, settings));
-  printWindow.document.close();
+const downloadReceiptPDF = (sale: Sale, settings: UserSettings | null) => {
+  const doc = new jsPDF();
+  const businessName = settings?.businessName || 'TruffleTech';
+  const businessPhone = settings?.businessPhone || '';
+  const date = format(sale.date.toDate(), 'dd/MM/yyyy HH:mm');
+  const transactionId = sale.id.slice(-8).toUpperCase();
+
+  const subtotal = sale.totalPrice + sale.discount;
+
+  // Header
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.text(businessName, 105, 20, { align: 'center' });
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(150);
+  doc.text('COMPROVANTE DE VENDA', 105, 28, { align: 'center' });
+
+  // Info Grid
+  doc.setDrawColor(200);
+  doc.line(20, 35, 190, 35);
+
+  doc.setTextColor(0);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DATA/HORA:', 20, 45);
+  doc.text('ID TRANS.:', 105, 45);
+  
+  doc.setFont('helvetica', 'normal');
+  doc.text(date, 45, 45);
+  doc.text(`#${transactionId}`, 125, 45);
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('CLIENTE:', 20, 52);
+  doc.setFont('helvetica', 'normal');
+  doc.text(sale.customerName || 'Consumidor Final', 45, 52);
+
+  // Items Table
+  const tableBody: any[][] = sale.items && sale.items.length > 0 
+    ? sale.items.map(item => [
+        { 
+          content: `${item.truffleName}\n${item.quantity} un. x R$ ${item.pricePerUnit.toFixed(2)}`,
+          styles: { fontStyle: 'bold' } 
+        },
+        `R$ ${(item.quantity * item.pricePerUnit).toFixed(2)}`
+      ])
+    : [[
+        { 
+          content: `${sale.truffleName || 'Trufa'}\n${sale.quantity} un. x R$ ${(subtotal / sale.quantity).toFixed(2)}`,
+          styles: { fontStyle: 'bold' } 
+        },
+        `R$ ${subtotal.toFixed(2)}`
+      ]];
+
+  if (sale.discount > 0) {
+    tableBody.push([
+      { 
+        content: `   DESCONTO APLICADO`,
+        styles: { fontStyle: 'italic', textColor: [100, 100, 100] } 
+      },
+      `(- R$ ${sale.discount.toFixed(2)})`
+    ]);
+  }
+
+  autoTable(doc, {
+    startY: 65,
+    head: [['ITEM / DESCRIÇÃO', 'VALOR']],
+    body: tableBody,
+    theme: 'plain',
+    headStyles: { 
+      fillColor: [255, 255, 255], 
+      textColor: [0, 0, 0], 
+      fontStyle: 'bold',
+      lineWidth: 0.1,
+      lineColor: [200, 200, 200]
+    },
+    styles: { font: 'helvetica', fontSize: 10, cellPadding: 4 },
+    columnStyles: {
+      1: { halign: 'right' }
+    }
+  });
+
+  const finalY = (doc as any).lastAutoTable.finalY + 10;
+
+  // Summary Section
+  doc.setDrawColor(200);
+  doc.line(120, finalY, 190, finalY);
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('SUBTOTAL:', 120, finalY + 10);
+  doc.text(`R$ ${subtotal.toFixed(2)}`, 190, finalY + 10, { align: 'right' });
+
+  if (sale.discount > 0) {
+    doc.text('DESCONTO:', 120, finalY + 16);
+    doc.text(`- R$ ${sale.discount.toFixed(2)}`, 190, finalY + 16, { align: 'right' });
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('TOTAL:', 120, finalY + 26);
+  doc.text(`R$ ${sale.totalPrice.toFixed(2)}`, 190, finalY + 26, { align: 'right' });
+
+  if (sale.paidAmount > 0 && sale.status === 'paid') {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('PAGAMENTO TOTAL REALIZADO', 120, finalY + 34);
+  } else if (sale.paidAmount > 0 && sale.status === 'pending') {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('VALOR PAGO ATÉ O MOMENTO:', 120, finalY + 34);
+    doc.text(`R$ ${sale.paidAmount.toFixed(2)}`, 190, finalY + 34, { align: 'right' });
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('SALDO DEVEDOR:', 120, finalY + 40);
+    doc.text(`R$ ${(sale.totalPrice - sale.paidAmount).toFixed(2)}`, 190, finalY + 40, { align: 'right' });
+  }
+
+  // Status Badge
+  const statusText = sale.status === 'paid' ? 'PAGAMENTO CONFIRMADO' : 'PAGAMENTO PENDENTE';
+  doc.setFontSize(8);
+  if (sale.status === 'paid') {
+    doc.setTextColor(12, 166, 120);
+  } else {
+    doc.setTextColor(247, 103, 7);
+  }
+  doc.text(statusText, 20, finalY + 10);
+
+  // Footer
+  doc.setTextColor(150);
+  doc.setFontSize(9);
+  doc.text('Obrigado pela preferência!', 105, finalY + 50, { align: 'center' });
+  if (businessPhone) {
+    doc.text(`WhatsApp: ${businessPhone}`, 105, finalY + 55, { align: 'center' });
+  }
+  doc.setFontSize(7);
+  doc.text('Documento gerado eletronicamente via TruffleTech', 105, finalY + 65, { align: 'center' });
+
+  doc.save(`recibo-${transactionId}.pdf`);
 };
 
 enum OperationType {
@@ -340,15 +272,34 @@ interface Truffle {
   ownerId: string;
 }
 
+interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  description: string;
+  ownerId: string;
+  createdAt: Timestamp;
+}
+
+interface SaleItem {
+  truffleId: string;
+  truffleName: string;
+  quantity: number;
+  pricePerUnit: number;
+}
+
 interface Sale {
   id: string;
-  truffleId: string;
-  truffleName?: string;
+  truffleId?: string; // Mantido para compatibilidade
+  truffleName?: string; // Mantido para compatibilidade
+  items?: SaleItem[];
   quantity: number;
   totalPrice: number;
+  paidAmount: number;
   discount: number;
   isCredit: boolean;
   customerName: string;
+  customerId?: string;
   date: Timestamp;
   ownerId: string;
   status: 'paid' | 'pending';
@@ -523,7 +474,7 @@ const Dashboard: React.FC<{ sales: Sale[], truffles: Truffle[], onTabChange: (ta
               <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest mt-1">Últimas 5 transações</p>
             </div>
             <button 
-              onClick={() => onTabChange('admin')}
+              onClick={() => onTabChange('history')}
               className="flex items-center justify-center w-10 h-10 bg-[#F5F5F4] hover:bg-[#141414] hover:text-white rounded-xl transition-all group"
               title="Ver Todas as Vendas"
             >
@@ -643,67 +594,231 @@ const Dashboard: React.FC<{ sales: Sale[], truffles: Truffle[], onTabChange: (ta
   );
 };
 
-const SalesManager: React.FC<{ truffles: Truffle[], settings: UserSettings | null }> = ({ truffles, settings }) => {
+const SalesManager: React.FC<{ 
+  truffles: Truffle[], 
+  customers: Customer[],
+  settings: UserSettings | null,
+  editingSale?: Sale | null,
+  onCancelEdit?: () => void
+}> = ({ truffles, customers, settings, editingSale, onCancelEdit }) => {
+  const [basket, setBasket] = useState<SaleItem[]>([]);
   const [selectedTruffleId, setSelectedTruffleId] = useState('');
-  const [quantity, setQuantity] = useState(1);
+  const [itemQuantity, setItemQuantity] = useState(1);
   const [manualDiscount, setManualDiscount] = useState(0);
   const [isCredit, setIsCredit] = useState(false);
   const [customerName, setCustomerName] = useState('');
+  const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({ name: '', phone: '', description: '' });
+  const [creatingCustomer, setCreatingCustomer] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [lastSale, setLastSale] = useState<Sale | null>(null);
 
-  const selectedTruffle = truffles.find(t => t.id === selectedTruffleId);
+  useEffect(() => {
+    if (editingSale) {
+      if (editingSale.items && editingSale.items.length > 0) {
+        setBasket(editingSale.items);
+      } else {
+        setBasket([{
+          truffleId: editingSale.truffleId || '',
+          truffleName: editingSale.truffleName || 'Trufa',
+          quantity: editingSale.quantity,
+          pricePerUnit: (editingSale.totalPrice + editingSale.discount) / editingSale.quantity
+        }]);
+      }
+      setManualDiscount(editingSale.discount);
+      setIsCredit(editingSale.isCredit);
+      setCustomerName(editingSale.customerName);
+      setSelectedCustomerId(editingSale.customerId || '');
+    } else {
+      setBasket([]);
+      setSelectedTruffleId('');
+      setItemQuantity(1);
+      setManualDiscount(0);
+      setIsCredit(false);
+      setCustomerName('');
+      setSelectedCustomerId('');
+    }
+  }, [editingSale]);
+
+  const totalQuantity = useMemo(() => basket.reduce((sum, item) => sum + item.quantity, 0), [basket]);
 
   const calculatedPrice = useMemo(() => {
-    if (!selectedTruffle) return 0;
+    if (basket.length === 0) return 0;
     
-    let unitPrice = selectedTruffle.price;
+    let totalPrice = 0;
+    let unitPrice = 0;
+
+    // Se houver regras de preço progressivo, elas se aplicam à quantidade TOTAL da venda
     if (settings?.progressivePricing) {
       const sortedRules = [...settings.progressivePricing].sort((a, b) => b.minQty - a.minQty);
-      const rule = sortedRules.find(r => quantity >= r.minQty);
-      if (rule) unitPrice = rule.price;
+      const rule = sortedRules.find(r => totalQuantity >= r.minQty);
+      
+      if (rule) {
+        unitPrice = rule.price;
+        totalPrice = unitPrice * totalQuantity;
+      } else {
+        // Se não houver regra, usa o preço individual de cada trufa no cesto
+        totalPrice = basket.reduce((sum, item) => {
+          const truffle = truffles.find(t => t.id === item.truffleId);
+          return sum + (truffle?.price || 0) * item.quantity;
+        }, 0);
+      }
+    } else {
+      // Sem preço progressivo, soma os preços individuais
+      totalPrice = basket.reduce((sum, item) => {
+        const truffle = truffles.find(t => t.id === item.truffleId);
+        return sum + (truffle?.price || 0) * item.quantity;
+      }, 0);
     }
 
-    return (unitPrice * quantity) - manualDiscount;
-  }, [selectedTruffle, quantity, manualDiscount, settings]);
+    return totalPrice - manualDiscount;
+  }, [basket, totalQuantity, manualDiscount, settings, truffles]);
 
-  const handleSale = async () => {
-    if (!selectedTruffle || quantity <= 0) return;
-    if (selectedTruffle.stock < quantity) {
-      alert('Estoque insuficiente!');
+  const addToBasket = () => {
+    if (!selectedTruffleId || itemQuantity <= 0) return;
+    const truffle = truffles.find(t => t.id === selectedTruffleId);
+    if (!truffle) return;
+
+    if (truffle.stock < itemQuantity) {
+      alert('Estoque insuficiente para este sabor!');
       return;
     }
 
+    const existingIndex = basket.findIndex(item => item.truffleId === selectedTruffleId);
+    if (existingIndex >= 0) {
+      const newBasket = [...basket];
+      newBasket[existingIndex].quantity += itemQuantity;
+      setBasket(newBasket);
+    } else {
+      setBasket([...basket, {
+        truffleId: truffle.id,
+        truffleName: truffle.name,
+        quantity: itemQuantity,
+        pricePerUnit: truffle.price
+      }]);
+    }
+    setSelectedTruffleId('');
+    setItemQuantity(1);
+  };
+
+  const removeFromBasket = (index: number) => {
+    setBasket(basket.filter((_, i) => i !== index));
+  };
+
+  const handleCreateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCustomer.name) return;
+    setCreatingCustomer(true);
+    try {
+      const customerData: Omit<Customer, 'id'> = {
+        name: normalizeName(newCustomer.name),
+        phone: newCustomer.phone,
+        description: newCustomer.description,
+        ownerId: auth.currentUser!.uid,
+        createdAt: Timestamp.now()
+      };
+      const docRef = await addDoc(collection(db, 'customers'), customerData);
+      setSelectedCustomerId(docRef.id);
+      setCustomerName(customerData.name);
+      setShowNewCustomerModal(false);
+      setNewCustomer({ name: '', phone: '', description: '' });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'customers');
+    } finally {
+      setCreatingCustomer(false);
+    }
+  };
+
+  const handleSale = async () => {
+    if (basket.length === 0) return;
+
+    if (!customerName && !selectedCustomerId) {
+      alert('Por favor, informe o nome do cliente.');
+      return;
+    }
+    
     setLoading(true);
     try {
-      const saleData: Omit<Sale, 'id'> = {
-        truffleId: selectedTruffle.id,
-        truffleName: selectedTruffle.name,
-        quantity,
+      const saleData: any = {
+        items: basket,
+        quantity: totalQuantity,
         totalPrice: calculatedPrice,
+        paidAmount: isCredit ? (editingSale?.paidAmount || 0) : calculatedPrice,
         discount: manualDiscount,
         isCredit,
-        customerName: isCredit ? customerName : '',
-        date: Timestamp.now(),
+        customerName: selectedCustomerId ? (customers.find(c => c.id === selectedCustomerId)?.name || '') : normalizeName(customerName),
+        customerId: selectedCustomerId || '',
         ownerId: auth.currentUser!.uid,
         status: isCredit ? 'pending' : 'paid'
       };
 
-      const docRef = await addDoc(collection(db, 'sales'), saleData);
-      await updateDoc(doc(db, 'truffles', selectedTruffle.id), {
-        stock: selectedTruffle.stock - quantity
-      });
+      // Para compatibilidade com o histórico antigo
+      if (basket.length === 1) {
+        saleData.truffleId = basket[0].truffleId;
+        saleData.truffleName = basket[0].truffleName;
+      } else {
+        saleData.truffleId = 'multi';
+        saleData.truffleName = `${basket.length} Sabores`;
+      }
 
-      setLastSale({ id: docRef.id, ...saleData } as Sale);
-      setShowSuccessModal(true);
+      if (editingSale) {
+        // Restaurar estoque antigo antes de aplicar o novo
+        const oldItems = editingSale.items || [{
+          truffleId: editingSale.truffleId || '',
+          quantity: editingSale.quantity
+        }];
 
-      // Reset
-      setSelectedTruffleId('');
-      setQuantity(1);
-      setManualDiscount(0);
-      setIsCredit(false);
-      setCustomerName('');
+        for (const item of oldItems) {
+          const truffle = truffles.find(t => t.id === item.truffleId);
+          if (truffle) {
+            await updateDoc(doc(db, 'truffles', truffle.id), {
+              stock: truffle.stock + item.quantity
+            });
+          }
+        }
+
+        // Aplicar novo estoque e atualizar venda
+        await updateDoc(doc(db, 'sales', editingSale.id), saleData);
+        for (const item of basket) {
+          const truffle = truffles.find(t => t.id === item.truffleId);
+          if (truffle) {
+            await updateDoc(doc(db, 'truffles', truffle.id), {
+              stock: truffle.stock - item.quantity
+            });
+          }
+        }
+        
+        alert('Venda atualizada com sucesso!');
+        if (onCancelEdit) onCancelEdit();
+      } else {
+        // Nova venda
+        saleData.date = Timestamp.now();
+        const docRef = await addDoc(collection(db, 'sales'), saleData);
+        
+        // Atualizar estoque para cada item
+        for (const item of basket) {
+          const truffle = truffles.find(t => t.id === item.truffleId);
+          if (truffle) {
+            await updateDoc(doc(db, 'truffles', truffle.id), {
+              stock: truffle.stock - item.quantity
+            });
+          }
+        }
+
+        setLastSale({ id: docRef.id, ...saleData } as Sale);
+        setShowSuccessModal(true);
+
+        // Reset
+        setBasket([]);
+        setSelectedTruffleId('');
+        setItemQuantity(1);
+        setManualDiscount(0);
+        setIsCredit(false);
+        setCustomerName('');
+        setSelectedCustomerId('');
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'sales');
     } finally {
@@ -712,33 +827,75 @@ const SalesManager: React.FC<{ truffles: Truffle[], settings: UserSettings | nul
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-[#141414]/5 shadow-xl">
-      <h2 className="text-2xl md:text-3xl font-black tracking-tighter italic mb-6 md:mb-8">Nova Venda</h2>
+    <div className="max-w-2xl mx-auto bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-[#141414]/5 shadow-xl relative">
+      {editingSale && (
+        <button 
+          onClick={onCancelEdit}
+          className="absolute right-6 top-6 p-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors"
+          title="Cancelar Edição"
+        >
+          <Plus className="rotate-45" size={20} />
+        </button>
+      )}
+      <h2 className="text-2xl md:text-3xl font-black tracking-tighter italic mb-6 md:mb-8">
+        {editingSale ? 'Editar Venda' : 'Nova Venda'}
+      </h2>
       
       <div className="space-y-6">
-        <div>
-          <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Selecionar Trufa</label>
-          <select 
-            value={selectedTruffleId}
-            onChange={(e) => setSelectedTruffleId(e.target.value)}
-            className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 transition-all"
-          >
-            <option value="">Escolha uma trufa...</option>
-            {truffles.map(t => (
-              <option key={t.id} value={t.id}>{t.name} (R${t.price.toFixed(2)}) - {t.stock} em estoque</option>
-            ))}
-          </select>
+        <div className="p-6 bg-[#F5F5F4] rounded-[2rem] space-y-4">
+          <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40">Adicionar Trufas ao Pedido</label>
+          <div className="space-y-4">
+            <select 
+              value={selectedTruffleId}
+              onChange={(e) => setSelectedTruffleId(e.target.value)}
+              className="w-full p-4 bg-white rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 transition-all"
+            >
+              <option value="">Escolha um sabor...</option>
+              {truffles.map(t => (
+                <option key={t.id} value={t.id}>{t.name} (R${t.price.toFixed(2)}) - {t.stock} em estoque</option>
+              ))}
+            </select>
+            
+            <div className="flex gap-2">
+              <input 
+                type="number"
+                value={itemQuantity}
+                onChange={(e) => setItemQuantity(parseInt(e.target.value) || 0)}
+                placeholder="Qtd"
+                className="w-24 p-4 bg-white rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10"
+              />
+              <button 
+                onClick={addToBasket}
+                disabled={!selectedTruffleId || itemQuantity <= 0}
+                className="flex-1 bg-[#141414] text-white rounded-2xl font-bold hover:bg-[#141414]/90 transition-all disabled:opacity-50"
+              >
+                Adicionar ao Pedido
+              </button>
+            </div>
+          </div>
+
+          {basket.length > 0 && (
+            <div className="mt-6 space-y-2">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40">Itens Selecionados</label>
+              {basket.map((item, index) => (
+                <div key={index} className="flex justify-between items-center p-3 bg-white rounded-xl border border-[#141414]/5">
+                  <div>
+                    <span className="font-bold text-sm">{item.truffleName}</span>
+                    <span className="ml-2 text-xs opacity-40">x{item.quantity}</span>
+                  </div>
+                  <button onClick={() => removeFromBasket(index)} className="text-red-500 p-1">
+                    <Plus className="rotate-45" size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-6">
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Quantidade</label>
-            <input 
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
-              className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10"
-            />
+          <div className="p-4 bg-[#F5F5F4] rounded-2xl">
+            <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-1">Total de Trufas</label>
+            <div className="text-2xl font-black">{totalQuantity}</div>
           </div>
           <div>
             <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Desconto Manual (R$)</label>
@@ -756,11 +913,45 @@ const SalesManager: React.FC<{ truffles: Truffle[], settings: UserSettings | nul
             <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Valor Total</span>
             <span className="text-3xl font-black tracking-tighter">R${calculatedPrice.toFixed(2)}</span>
           </div>
-          {selectedTruffle && (
+          {totalQuantity > 0 && (
             <p className="text-[10px] font-medium opacity-40">
-              Preço unitário: R${(calculatedPrice / quantity).toFixed(2)} (incluindo descontos)
+              Preço médio unitário: R${(calculatedPrice / totalQuantity).toFixed(2)}
             </p>
           )}
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Cliente <span className="text-red-500">*</span></label>
+            <div className="flex gap-2">
+              <select 
+                value={selectedCustomerId}
+                onChange={(e) => {
+                  setSelectedCustomerId(e.target.value);
+                  if (e.target.value) {
+                    const c = customers.find(cust => cust.id === e.target.value);
+                    if (c) setCustomerName(c.name);
+                  } else {
+                    setCustomerName('');
+                  }
+                }}
+                className="flex-1 p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 transition-all"
+              >
+                <option value="">Selecionar Cliente Existente...</option>
+                {customers.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+              <button 
+                type="button"
+                onClick={() => setShowNewCustomerModal(true)}
+                className="p-4 bg-[#141414] text-white rounded-2xl hover:bg-[#141414]/90 transition-all flex items-center justify-center"
+                title="Cadastrar Novo Cliente"
+              >
+                <Plus size={24} />
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-4 p-4 bg-[#F5F5F4] rounded-2xl">
@@ -773,33 +964,78 @@ const SalesManager: React.FC<{ truffles: Truffle[], settings: UserSettings | nul
           <span className="font-bold text-sm">Registrar como "Fiado"</span>
         </div>
 
-        <AnimatePresence>
-          {isCredit && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-            >
-              <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Nome do Cliente</label>
-              <input 
-                type="text"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Quem está comprando?"
-                className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10"
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         <button 
           onClick={handleSale}
-          disabled={loading || !selectedTruffle || quantity <= 0}
+          disabled={loading || basket.length === 0}
           className="w-full bg-[#141414] text-white py-5 rounded-3xl font-black text-lg tracking-tight hover:bg-[#141414]/90 transition-all active:scale-[0.98] disabled:opacity-50 shadow-xl"
         >
-          {loading ? 'Processando...' : 'Finalizar Venda'}
+          {loading ? 'Processando...' : editingSale ? 'Atualizar Venda' : 'Finalizar Venda'}
         </button>
       </div>
+
+      {/* Modal Novo Cliente */}
+      <AnimatePresence>
+        {showNewCustomerModal && (
+          <div className="fixed inset-0 bg-[#141414]/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setShowNewCustomerModal(false)}
+                className="absolute right-6 top-6 p-2 hover:bg-[#F5F5F4] rounded-full transition-colors"
+              >
+                <Plus className="rotate-45 text-[#141414]/40" size={24} />
+              </button>
+
+              <h3 className="text-2xl font-black tracking-tighter italic mb-6">Novo Cliente</h3>
+              
+              <form onSubmit={handleCreateCustomer} className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Nome Completo</label>
+                  <input 
+                    type="text"
+                    required
+                    value={newCustomer.name}
+                    onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                    className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10"
+                    placeholder="Nome do cliente"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Celular / WhatsApp</label>
+                  <input 
+                    type="text"
+                    value={newCustomer.phone}
+                    onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+                    className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10"
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Descrição / Observação</label>
+                  <textarea 
+                    value={newCustomer.description}
+                    onChange={(e) => setNewCustomer({ ...newCustomer, description: e.target.value })}
+                    className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 h-24 resize-none"
+                    placeholder="Alguma observação sobre o cliente?"
+                  />
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={creatingCustomer || !newCustomer.name}
+                  className="w-full bg-[#141414] text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-[#141414]/90 transition-all disabled:opacity-50"
+                >
+                  {creatingCustomer ? 'Cadastrando...' : 'Cadastrar Cliente'}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Success Modal */}
       <AnimatePresence>
@@ -816,24 +1052,24 @@ const SalesManager: React.FC<{ truffles: Truffle[], settings: UserSettings | nul
               </div>
               
               <h3 className="text-3xl font-black tracking-tighter italic mb-2">Venda Finalizada!</h3>
-              <p className="text-[#141414]/40 font-bold text-sm mb-8">Deseja gerar o comprovante para o cliente?</p>
+              <p className="text-[#141414]/40 font-bold text-sm mb-8">Deseja baixar o comprovante em PDF?</p>
               
               <div className="space-y-3">
                 <button 
                   onClick={() => {
-                    printReceipt(lastSale, settings);
+                    downloadReceiptPDF(lastSale, settings);
                     setShowSuccessModal(false);
                   }}
                   className="w-full bg-[#141414] text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-[#141414]/90 transition-all flex items-center justify-center gap-3"
                 >
                   <FileText size={20} />
-                  Imprimir Comprovante
+                  Baixar Recibo (PDF)
                 </button>
                 <button 
                   onClick={() => setShowSuccessModal(false)}
                   className="w-full py-4 rounded-2xl font-bold text-[#141414]/40 hover:text-[#141414] transition-all"
                 >
-                  Continuar sem Recibo
+                  Continuar sem PDF
                 </button>
               </div>
 
@@ -1163,106 +1399,68 @@ const Settings: React.FC<{ settings: UserSettings | null }> = ({ settings }) => 
   );
 };
 
-const AdminHistory: React.FC<{ sales: Sale[], settings: UserSettings | null }> = ({ sales, settings }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+const AdminHistory: React.FC<{ 
+  sales: Sale[], 
+  settings: UserSettings | null,
+  onEditSale: (sale: Sale) => void
+}> = ({ sales, settings, onEditSale }) => {
+  const [confirmAction, setConfirmAction] = useState<{ type: 'edit' | 'delete', sale: Sale } | null>(null);
+  const [passwordAction, setPasswordAction] = useState<{ type: 'edit' | 'delete', sale: Sale } | null>(null);
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [editingSale, setEditingSale] = useState<Sale | null>(null);
-  const [deletingSale, setDeletingSale] = useState<Sale | null>(null);
+  const [passwordError, setPasswordError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Senha administrativa fixa para este exemplo
-  const ADMIN_PASSWORD = "admin"; 
+  const ADMIN_PASSWORD = "admin";
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      setError('');
+      const action = passwordAction!;
+      setPasswordAction(null);
+      setPassword('');
+      setPasswordError('');
+
+      if (action.type === 'delete') {
+        setIsDeleting(true);
+        try {
+          // Restaurar estoque ao excluir venda
+          const itemsToRestore = action.sale.items || [{
+            truffleId: action.sale.truffleId || '',
+            quantity: action.sale.quantity
+          }];
+
+          for (const item of itemsToRestore) {
+            if (!item.truffleId) continue;
+            const truffleRef = doc(db, 'truffles', item.truffleId);
+            const truffleDoc = await getDoc(truffleRef);
+            if (truffleDoc.exists()) {
+              await updateDoc(truffleRef, {
+                stock: truffleDoc.data().stock + item.quantity
+              });
+            }
+          }
+          await deleteDoc(doc(db, 'sales', action.sale.id));
+        } catch (error) {
+          handleFirestoreError(error, OperationType.DELETE, `sales/${action.sale.id}`);
+        } finally {
+          setIsDeleting(false);
+        }
+      } else if (action.type === 'edit') {
+        onEditSale(action.sale);
+      }
     } else {
-      setError('Senha incorreta. Acesso negado.');
+      setPasswordError('Senha incorreta.');
       setPassword('');
     }
   };
-
-  const handleDelete = async () => {
-    if (!deletingSale) return;
-    setIsDeleting(true);
-    try {
-      await deleteDoc(doc(db, 'sales', deletingSale.id));
-      setDeletingSale(null);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `sales/${deletingSale.id}`);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleUpdateSale = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingSale) return;
-    try {
-      const { id, ...data } = editingSale;
-      await updateDoc(doc(db, 'sales', id), data);
-      setEditingSale(null);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `sales/${editingSale.id}`);
-    }
-  };
-
-  const printReceipt = (sale: Sale) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
-    const date = format(sale.date.toDate(), 'dd/MM/yyyy HH:mm');
-    const businessName = settings?.businessName || 'TruffleTech';
-    const businessPhone = settings?.businessPhone || '';
-    
-    printWindow.document.write(generateReceiptHTML(sale, settings));
-    printWindow.document.close();
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-[2.5rem] border border-[#141414]/5 shadow-2xl text-center">
-        <div className="w-20 h-20 bg-red-50 text-red-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-          <ShieldCheck size={40} />
-        </div>
-        <h2 className="text-2xl font-black tracking-tighter italic mb-2">Área Restrita</h2>
-        <p className="text-[#141414]/40 font-bold mb-8 text-sm">Insira a senha administrativa para acessar o histórico e gerenciar registros.</p>
-        
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input 
-            type="password"
-            placeholder="Senha Admin"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold text-center focus:ring-2 focus:ring-red-500/20 transition-all outline-none"
-            autoFocus
-          />
-          {error && <p className="text-red-600 text-xs font-bold">{error}</p>}
-          <button 
-            type="submit"
-            className="w-full bg-[#141414] text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-[#141414]/90 transition-all active:scale-95"
-          >
-            Acessar Histórico
-          </button>
-        </form>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8">
       <div className="bg-white rounded-[2.5rem] border border-[#141414]/5 shadow-xl overflow-hidden">
         <div className="p-8 border-b border-[#141414]/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black tracking-tighter italic">Histórico Administrativo</h2>
+            <h2 className="text-2xl font-black tracking-tighter italic">Histórico de Vendas</h2>
             <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest mt-1">Gerenciamento total de registros</p>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-full self-start">
-            <ShieldCheck size={16} />
-            <span className="text-[10px] font-black uppercase tracking-widest">Acesso Liberado</span>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -1281,7 +1479,19 @@ const AdminHistory: React.FC<{ sales: Sale[], settings: UserSettings | null }> =
               {sales.map(sale => (
                 <tr key={sale.id} className="hover:bg-[#F5F5F4]/50 transition-colors">
                   <td className="p-6 text-sm font-bold">{format(sale.date.toDate(), 'dd/MM/yy HH:mm', { locale: ptBR })}</td>
-                  <td className="p-6 text-sm font-bold">{sale.truffleName}</td>
+                  <td className="p-6 text-sm font-bold">
+                    {sale.items && sale.items.length > 0 ? (
+                      <div className="space-y-1">
+                        {sale.items.map((item, i) => (
+                          <div key={i} className="text-[10px] opacity-60">
+                            {item.truffleName} (x{item.quantity})
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      sale.truffleName
+                    )}
+                  </td>
                   <td className="p-6 text-sm font-bold">{sale.customerName || '-'}</td>
                   <td className="p-6 text-sm font-black">R${sale.totalPrice.toFixed(2)}</td>
                   <td className="p-6">
@@ -1295,21 +1505,21 @@ const AdminHistory: React.FC<{ sales: Sale[], settings: UserSettings | null }> =
                   <td className="p-6">
                     <div className="flex items-center gap-2">
                       <button 
-                        onClick={() => printReceipt(sale)}
+                        onClick={() => downloadReceiptPDF(sale, settings)}
                         className="p-2 text-[#141414]/40 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                        title="Imprimir Recibo"
+                        title="Baixar PDF"
                       >
                         <FileText size={18} />
                       </button>
                       <button 
-                        onClick={() => setEditingSale(sale)}
+                        onClick={() => setConfirmAction({ type: 'edit', sale })}
                         className="p-2 text-[#141414]/40 hover:text-[#141414] hover:bg-[#F5F5F4] rounded-lg transition-all"
                         title="Editar Registro"
                       >
                         <Edit2 size={18} />
                       </button>
                       <button 
-                        onClick={() => setDeletingSale(sale)}
+                        onClick={() => setConfirmAction({ type: 'delete', sale })}
                         className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                         title="Excluir Registro"
                       >
@@ -1324,9 +1534,9 @@ const AdminHistory: React.FC<{ sales: Sale[], settings: UserSettings | null }> =
         </div>
       </div>
 
-      {/* Modal de Confirmação de Exclusão */}
+      {/* Modal de Confirmação */}
       <AnimatePresence>
-        {deletingSale && (
+        {confirmAction && (
           <div className="fixed inset-0 bg-[#141414]/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
@@ -1334,32 +1544,39 @@ const AdminHistory: React.FC<{ sales: Sale[], settings: UserSettings | null }> =
               exit={{ opacity: 0, scale: 0.9 }}
               className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center"
             >
-              <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <AlertCircle size={32} />
+              <div className={cn(
+                "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6",
+                confirmAction.type === 'delete' ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-600"
+              )}>
+                {confirmAction.type === 'delete' ? <Trash2 size={32} /> : <Edit2 size={32} />}
               </div>
-              <h3 className="text-xl font-black tracking-tighter italic mb-2">Excluir Registro?</h3>
+              <h3 className="text-xl font-black tracking-tighter italic mb-2">
+                {confirmAction.type === 'delete' ? 'Excluir Registro?' : 'Editar Registro?'}
+              </h3>
               <p className="text-[#141414]/40 font-bold text-xs mb-8">
-                Tem certeza que deseja excluir a venda de <span className="text-[#141414]">{deletingSale.truffleName}</span>? Esta ação é permanente.
+                {confirmAction.type === 'delete' 
+                  ? `Tem certeza que deseja excluir a venda de ${confirmAction.sale.truffleName}?`
+                  : `Deseja editar a venda de ${confirmAction.sale.truffleName}? Você será redirecionado para a aba de vendas.`}
               </p>
 
               <div className="flex gap-3">
                 <button 
-                  onClick={() => setDeletingSale(null)}
-                  disabled={isDeleting}
-                  className="flex-1 py-4 font-bold text-[#141414]/40 hover:text-[#141414] transition-colors disabled:opacity-50"
+                  onClick={() => setConfirmAction(null)}
+                  className="flex-1 py-4 font-bold text-[#141414]/40 hover:text-[#141414] transition-colors"
                 >
                   Cancelar
                 </button>
                 <button 
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="flex-1 bg-red-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-red-700 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isDeleting ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    'Excluir'
+                  onClick={() => {
+                    setPasswordAction(confirmAction);
+                    setConfirmAction(null);
+                  }}
+                  className={cn(
+                    "flex-1 text-white py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95",
+                    confirmAction.type === 'delete' ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
                   )}
+                >
+                  Confirmar
                 </button>
               </div>
             </motion.div>
@@ -1367,64 +1584,40 @@ const AdminHistory: React.FC<{ sales: Sale[], settings: UserSettings | null }> =
         )}
       </AnimatePresence>
 
-      {/* Modal de Edição */}
+      {/* Modal de Senha */}
       <AnimatePresence>
-        {editingSale && (
-          <div className="fixed inset-0 bg-[#141414]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        {passwordAction && (
+          <div className="fixed inset-0 bg-[#141414]/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl relative"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center"
             >
-              <button 
-                onClick={() => setEditingSale(null)}
-                className="absolute right-6 top-6 p-2 hover:bg-[#F5F5F4] rounded-full transition-colors"
-              >
-                <Plus className="rotate-45 text-[#141414]/40" size={24} />
-              </button>
+              <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <ShieldCheck size={32} />
+              </div>
+              <h3 className="text-xl font-black tracking-tighter italic mb-2">Autenticação Necessária</h3>
+              <p className="text-[#141414]/40 font-bold text-xs mb-8">Insira a senha de admin para prosseguir.</p>
 
-              <h3 className="text-2xl font-black tracking-tighter italic mb-8">Editar Registro de Venda</h3>
-
-              <form onSubmit={handleUpdateSale} className="space-y-6">
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Cliente</label>
-                  <input 
-                    type="text"
-                    value={editingSale.customerName}
-                    onChange={(e) => setEditingSale({ ...editingSale, customerName: e.target.value })}
-                    className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold outline-none focus:ring-2 focus:ring-[#141414]/5"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Valor Total (R$)</label>
-                    <input 
-                      type="number"
-                      step="0.01"
-                      value={editingSale.totalPrice}
-                      onChange={(e) => setEditingSale({ ...editingSale, totalPrice: parseFloat(e.target.value) })}
-                      className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold outline-none focus:ring-2 focus:ring-[#141414]/5"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Status</label>
-                    <select 
-                      value={editingSale.status}
-                      onChange={(e) => setEditingSale({ ...editingSale, status: e.target.value as 'paid' | 'pending' })}
-                      className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold outline-none focus:ring-2 focus:ring-[#141414]/5 appearance-none"
-                    >
-                      <option value="paid">Pago</option>
-                      <option value="pending">Pendente (Fiado)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 pt-4">
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <input 
+                  type="password"
+                  placeholder="Senha Admin"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold text-center focus:ring-2 focus:ring-red-500/20 transition-all outline-none"
+                  autoFocus
+                />
+                {passwordError && <p className="text-red-600 text-xs font-bold">{passwordError}</p>}
+                <div className="flex gap-3">
                   <button 
                     type="button"
-                    onClick={() => setEditingSale(null)}
+                    onClick={() => {
+                      setPasswordAction(null);
+                      setPassword('');
+                      setPasswordError('');
+                    }}
                     className="flex-1 py-4 font-bold text-[#141414]/40 hover:text-[#141414] transition-colors"
                   >
                     Cancelar
@@ -1433,7 +1626,7 @@ const AdminHistory: React.FC<{ sales: Sale[], settings: UserSettings | null }> =
                     type="submit"
                     className="flex-1 bg-[#141414] text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-[#141414]/90 transition-all active:scale-95"
                   >
-                    Salvar Alterações
+                    Verificar
                   </button>
                 </div>
               </form>
@@ -1441,47 +1634,111 @@ const AdminHistory: React.FC<{ sales: Sale[], settings: UserSettings | null }> =
           </div>
         )}
       </AnimatePresence>
+
+      {/* Loading Overlay para Exclusão */}
+      <AnimatePresence>
+        {isDeleting && (
+          <div className="fixed inset-0 bg-[#141414]/50 backdrop-blur-sm z-[100] flex items-center justify-center">
+            <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center">
+              <div className="w-12 h-12 border-4 border-[#141414]/10 border-t-[#141414] rounded-full animate-spin mb-4" />
+              <p className="font-black tracking-tighter italic">Excluindo registro...</p>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-const PendingPayments: React.FC<{ sales: Sale[] }> = ({ sales }) => {
+const PendingPayments: React.FC<{ sales: Sale[], customers: Customer[] }> = ({ sales, customers }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  const [partialPaymentModal, setPartialPaymentModal] = useState<{ customerName: string, total: number, sales: Sale[] } | null>(null);
+  const [partialAmount, setPartialAmount] = useState<string>('');
   
   const pendingSalesByCustomer = useMemo(() => {
     const pending = sales.filter(s => s.status === 'pending');
-    const grouped: { [key: string]: Sale[] } = {};
+    const grouped: { [key: string]: { sales: Sale[], customer?: Customer, name: string } } = {};
     
     pending.forEach(sale => {
-      const name = sale.customerName || 'Sem Nome';
-      if (!grouped[name]) grouped[name] = [];
-      grouped[name].push(sale);
+      const customerId = sale.customerId;
+      const name = normalizeName(sale.customerName) || 'Sem Nome';
+      const key = customerId || name;
+
+      if (!grouped[key]) {
+        grouped[key] = { 
+          sales: [], 
+          customer: customers.find(c => c.id === customerId),
+          name: name
+        };
+      }
+      grouped[key].sales.push(sale);
     });
 
     return Object.entries(grouped)
-      .map(([name, customerSales]) => ({
-        name,
-        sales: customerSales,
-        total: customerSales.reduce((acc, s) => acc + s.totalPrice, 0)
+      .map(([key, data]) => ({
+        key,
+        name: data.name,
+        customer: data.customer,
+        sales: data.sales,
+        total: data.sales.reduce((acc, s) => acc + (s.totalPrice - (s.paidAmount || 0)), 0)
       }))
       .filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()))
       .sort((a, b) => b.total - a.total);
-  }, [sales, searchTerm]);
+  }, [sales, customers, searchTerm]);
 
   const totalPending = useMemo(() => 
-    sales.filter(s => s.status === 'pending').reduce((acc, s) => acc + s.totalPrice, 0), 
+    sales.filter(s => s.status === 'pending').reduce((acc, s) => acc + (s.totalPrice - (s.paidAmount || 0)), 0), 
   [sales]);
 
   const handleMarkAsPaid = async (saleIds: string[], customerName?: string) => {
     const processingId = customerName || saleIds[0];
     setIsProcessing(processingId);
     try {
-      await Promise.all(saleIds.map(id => 
-        updateDoc(doc(db, 'sales', id), { status: 'paid' })
-      ));
+      await Promise.all(saleIds.map(id => {
+        const sale = sales.find(s => s.id === id);
+        return updateDoc(doc(db, 'sales', id), { 
+          status: 'paid',
+          paidAmount: sale?.totalPrice || 0
+        });
+      }));
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `sales/multiple`);
+    } finally {
+      setIsProcessing(null);
+    }
+  };
+
+  const handlePartialPayment = async () => {
+    if (!partialPaymentModal || !partialAmount || isNaN(parseFloat(partialAmount))) return;
+    
+    let amountToApply = parseFloat(partialAmount);
+    if (amountToApply <= 0) return;
+
+    setIsProcessing(partialPaymentModal.customerName);
+    try {
+      // Sort sales by date (oldest first) to apply payment
+      const sortedSales = [...partialPaymentModal.sales].sort((a, b) => a.date.toMillis() - b.date.toMillis());
+      
+      for (const sale of sortedSales) {
+        if (amountToApply <= 0) break;
+        
+        const currentDebt = sale.totalPrice - (sale.paidAmount || 0);
+        const paymentForThisSale = Math.min(amountToApply, currentDebt);
+        const newPaidAmount = (sale.paidAmount || 0) + paymentForThisSale;
+        
+        await updateDoc(doc(db, 'sales', sale.id), {
+          paidAmount: newPaidAmount,
+          status: newPaidAmount >= sale.totalPrice ? 'paid' : 'pending'
+        });
+        
+        amountToApply -= paymentForThisSale;
+      }
+      
+      setPartialPaymentModal(null);
+      setPartialAmount('');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `sales/partial`);
     } finally {
       setIsProcessing(null);
     }
@@ -1524,7 +1781,7 @@ const PendingPayments: React.FC<{ sales: Sale[] }> = ({ sales }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-              key={customer.name} 
+              key={customer.key} 
               className="bg-white rounded-[2.5rem] border border-[#141414]/5 shadow-sm overflow-hidden"
             >
               <div className="p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#F5F5F4]/30">
@@ -1534,25 +1791,45 @@ const PendingPayments: React.FC<{ sales: Sale[] }> = ({ sales }) => {
                   </div>
                   <div>
                     <h4 className="text-2xl font-black tracking-tight">{customer.name}</h4>
-                    <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest">
-                      {customer.sales.length} {customer.sales.length === 1 ? 'item pendente' : 'itens pendentes'}
-                    </p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                      <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest">
+                        {customer.sales.length} {customer.sales.length === 1 ? 'item pendente' : 'itens pendentes'}
+                      </p>
+                      {customer.customer?.phone && (
+                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">
+                          {customer.customer.phone}
+                        </p>
+                      )}
+                    </div>
+                    {customer.customer?.description && (
+                      <p className="text-[10px] font-medium text-[#141414]/40 mt-1 line-clamp-1 italic">
+                        "{customer.customer.description}"
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col md:items-end gap-2 w-full md:w-auto">
                   <p className="text-3xl font-black text-orange-600 tracking-tighter">R${customer.total.toFixed(2)}</p>
-                  <button 
-                    onClick={() => handleMarkAsPaid(customer.sales.map(s => s.id), customer.name)}
-                    disabled={isProcessing === customer.name}
-                    className="w-full md:w-auto bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isProcessing === customer.name ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <CheckCircle2 size={18} />
-                    )}
-                    {isProcessing === customer.name ? 'Processando...' : 'Quitar Tudo'}
-                  </button>
+                  <div className="flex gap-2 w-full md:w-auto">
+                    <button 
+                      onClick={() => setPartialPaymentModal({ customerName: customer.name, total: customer.total, sales: customer.sales })}
+                      className="flex-1 md:flex-none bg-[#141414] text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-[#141414]/90 transition-all active:scale-95"
+                    >
+                      Pagar Parte
+                    </button>
+                    <button 
+                      onClick={() => handleMarkAsPaid(customer.sales.map(s => s.id), customer.name)}
+                      disabled={isProcessing === customer.name}
+                      className="flex-1 md:flex-none bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isProcessing === customer.name ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <CheckCircle2 size={18} />
+                      )}
+                      {isProcessing === customer.name ? '...' : 'Quitar Tudo'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -1572,14 +1849,29 @@ const PendingPayments: React.FC<{ sales: Sale[] }> = ({ sales }) => {
                             <Package size={18} />
                           </div>
                           <div>
-                            <p className="font-bold text-sm">{sale.quantity}x {sale.truffleName}</p>
+                            {sale.items && sale.items.length > 0 ? (
+                              <div className="space-y-1">
+                                {sale.items.map((item, i) => (
+                                  <p key={i} className="font-bold text-sm">
+                                    {item.quantity}x {item.truffleName}
+                                  </p>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="font-bold text-sm">{sale.quantity}x {sale.truffleName}</p>
+                            )}
                             <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest">
                               {format(sale.date.toDate(), "dd 'de' MMM, HH:mm", { locale: ptBR })}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-6">
-                          <p className="font-black text-sm">R${sale.totalPrice.toFixed(2)}</p>
+                          <div className="text-right">
+                            <p className="font-black text-sm">R${(sale.totalPrice - (sale.paidAmount || 0)).toFixed(2)}</p>
+                            {sale.paidAmount > 0 && (
+                              <p className="text-[9px] font-bold text-green-600 uppercase">Pago: R${sale.paidAmount.toFixed(2)}</p>
+                            )}
+                          </div>
                           <button 
                             onClick={() => handleMarkAsPaid([sale.id])}
                             disabled={isProcessing === sale.id}
@@ -1615,7 +1907,106 @@ const PendingPayments: React.FC<{ sales: Sale[] }> = ({ sales }) => {
             <p className="text-[#141414]/40 font-bold">Não há pagamentos pendentes {searchTerm ? 'para esta busca' : 'no momento'}.</p>
           </motion.div>
         )}
+
+        {/* Partial Payment Modal */}
+        <AnimatePresence>
+          {partialPaymentModal && (
+            <div className="fixed inset-0 bg-[#141414]/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden"
+              >
+                <h3 className="text-2xl font-black tracking-tighter italic mb-2">Pagamento Parcial</h3>
+                <p className="text-[#141414]/40 font-bold text-sm mb-6">
+                  Cliente: <span className="text-[#141414]">{partialPaymentModal.customerName}</span><br />
+                  Dívida Total: <span className="text-orange-600">R$ {partialPaymentModal.total.toFixed(2)}</span>
+                </p>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Valor a Pagar (R$)</label>
+                    <input 
+                      type="number"
+                      step="0.01"
+                      autoFocus
+                      value={partialAmount}
+                      onChange={(e) => setPartialAmount(e.target.value)}
+                      placeholder="Ex: 10.00"
+                      className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button 
+                      onClick={() => {
+                        setPartialPaymentModal(null);
+                        setPartialAmount('');
+                      }}
+                      className="flex-1 py-4 font-bold text-[#141414]/40 hover:text-[#141414] transition-all"
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      onClick={handlePartialPayment}
+                      disabled={!partialAmount || isProcessing === partialPaymentModal.customerName}
+                      className="flex-1 bg-[#141414] text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-[#141414]/90 transition-all disabled:opacity-50"
+                    >
+                      {isProcessing === partialPaymentModal.customerName ? 'Processando...' : 'Confirmar'}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
+    </div>
+  );
+};
+
+const PasswordGate: React.FC<{ onAuthenticated: () => void, title: string, description: string }> = ({ onAuthenticated, title, description }) => {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const ADMIN_PASSWORD = "admin"; 
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      onAuthenticated();
+      setError('');
+    } else {
+      setError('Senha incorreta. Acesso negado.');
+      setPassword('');
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-[2.5rem] border border-[#141414]/5 shadow-2xl text-center">
+      <div className="w-20 h-20 bg-red-50 text-red-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+        <ShieldCheck size={40} />
+      </div>
+      <h2 className="text-2xl font-black tracking-tighter italic mb-2">{title}</h2>
+      <p className="text-[#141414]/40 font-bold mb-8 text-sm">{description}</p>
+      
+      <form onSubmit={handleLogin} className="space-y-4">
+        <input 
+          type="password"
+          placeholder="Senha Admin"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold text-center focus:ring-2 focus:ring-red-500/20 transition-all outline-none"
+          autoFocus
+        />
+        {error && <p className="text-red-600 text-xs font-bold">{error}</p>}
+        <button 
+          type="submit"
+          className="w-full bg-[#141414] text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-[#141414]/90 transition-all active:scale-95"
+        >
+          Acessar Configurações
+        </button>
+      </form>
     </div>
   );
 };
@@ -1625,9 +2016,10 @@ const SettingsHub: React.FC<{
   truffles: Truffle[], 
   sales: Sale[],
   profile: UserProfile | null,
-  activeSubTab: 'pricing' | 'inventory' | 'admin' | 'business' | 'account',
-  onSubTabChange: (tab: any) => void
-}> = ({ settings, truffles, sales, profile, activeSubTab, onSubTabChange }) => {
+  activeSubTab: 'pricing' | 'inventory' | 'business' | 'account',
+  onSubTabChange: (tab: any) => void,
+  setIsAdminAuthenticated: (val: boolean) => void
+}> = ({ settings, truffles, sales, profile, activeSubTab, onSubTabChange, setIsAdminAuthenticated }) => {
   
   const exportToPDF = () => {
     const doc = new jsPDF();
@@ -1757,7 +2149,6 @@ const SettingsHub: React.FC<{
     { id: 'business', label: 'Negócio', icon: UserIcon },
     { id: 'pricing', label: 'Preços', icon: DollarSign },
     { id: 'inventory', label: 'Estoque', icon: Package },
-    ...(profile?.role === 'admin' ? [{ id: 'admin', label: 'Histórico Admin', icon: ShieldCheck }] : []),
     { id: 'account', label: 'Conta & Dados', icon: SettingsIcon },
   ];
 
@@ -1786,7 +2177,6 @@ const SettingsHub: React.FC<{
         {activeSubTab === 'business' && <BusinessSettings />}
         {activeSubTab === 'pricing' && <Settings settings={settings} />}
         {activeSubTab === 'inventory' && <TruffleManager truffles={truffles} />}
-        {activeSubTab === 'admin' && profile?.role === 'admin' && <AdminHistory sales={sales} settings={settings} />}
         {activeSubTab === 'account' && (
           <div className="max-w-2xl mx-auto space-y-6">
             <div className="bg-white p-8 rounded-[2.5rem] border border-[#141414]/5 shadow-sm">
@@ -1805,7 +2195,10 @@ const SettingsHub: React.FC<{
               <h3 className="text-xl font-black tracking-tighter italic mb-2 text-red-600">Sair do Aplicativo</h3>
               <p className="text-[#141414]/40 font-bold text-xs mb-6">Encerra sua sessão atual de forma segura.</p>
               <button 
-                onClick={() => signOut(auth)}
+                onClick={() => {
+                  setIsAdminAuthenticated(false);
+                  signOut(auth);
+                }}
                 className="w-full bg-red-50 text-red-600 py-4 rounded-2xl font-bold hover:bg-red-100 transition-all flex items-center justify-center gap-3 border border-red-100"
               >
                 <LogOut size={20} />
@@ -1825,17 +2218,21 @@ export default function App() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'sales' | 'settings' | 'pending'>('dashboard');
-  const [settingsTab, setSettingsTab] = useState<'pricing' | 'inventory' | 'admin' | 'business' | 'account'>('pricing');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'sales' | 'settings' | 'pending' | 'history'>('dashboard');
+  const [settingsTab, setSettingsTab] = useState<'pricing' | 'inventory' | 'business' | 'account'>('business');
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [editingSaleRecord, setEditingSaleRecord] = useState<Sale | null>(null);
   
   const [truffles, setTruffles] = useState<Truffle[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [settings, setSettings] = useState<UserSettings | null>(null);
 
   const tabLabels = {
     dashboard: 'Painel',
     sales: 'Nova Venda',
     pending: 'Contas a Receber',
+    history: 'Histórico',
     settings: 'Configurações'
   };
 
@@ -1874,6 +2271,11 @@ export default function App() {
       setSales(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Sale)));
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'sales'));
 
+    const qCustomers = query(collection(db, 'customers'), where('ownerId', '==', user.uid), orderBy('name', 'asc'));
+    const unsubscribeCustomers = onSnapshot(qCustomers, (snapshot) => {
+      setCustomers(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Customer)));
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'customers'));
+
     const unsubscribeSettings = onSnapshot(doc(db, 'settings', user.uid), (d) => {
       if (d.exists()) setSettings(d.data() as UserSettings);
     }, (err) => handleFirestoreError(err, OperationType.GET, 'settings'));
@@ -1881,6 +2283,7 @@ export default function App() {
     return () => {
       unsubscribeTruffles();
       unsubscribeSales();
+      unsubscribeCustomers();
       unsubscribeSettings();
     };
   }, [user, isAuthReady]);
@@ -1916,11 +2319,15 @@ export default function App() {
               { id: 'dashboard', label: 'Painel', icon: LayoutDashboard },
               { id: 'sales', label: 'Nova Venda', icon: ShoppingCart },
               { id: 'pending', label: 'Contas a Receber', icon: DollarSign },
+              { id: 'history', label: 'Histórico', icon: History },
               { id: 'settings', label: 'Configurações', icon: SettingsIcon },
             ].map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id as any)}
+                onClick={() => {
+                  if (item.id === 'sales') setEditingSaleRecord(null);
+                  setActiveTab(item.id as any);
+                }}
                 className={cn(
                   "w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all",
                   activeTab === item.id 
@@ -1981,7 +2388,8 @@ export default function App() {
                     sales={sales} 
                     truffles={truffles} 
                     onTabChange={(tab) => {
-                      if (['pricing', 'inventory', 'admin', 'business', 'account'].includes(tab)) {
+                      if (tab === 'sales') setEditingSaleRecord(null);
+                      if (['pricing', 'inventory', 'business', 'account'].includes(tab)) {
                         setActiveTab('settings');
                         setSettingsTab(tab as any);
                       } else {
@@ -1991,17 +2399,47 @@ export default function App() {
                     settings={settings} 
                   />
                 )}
-                {activeTab === 'sales' && <SalesManager truffles={truffles} settings={settings} />}
-                {activeTab === 'pending' && <PendingPayments sales={sales} />}
-                {activeTab === 'settings' && (
-                  <SettingsHub 
-                    settings={settings} 
+                {activeTab === 'sales' && (
+                  <SalesManager 
                     truffles={truffles} 
-                    sales={sales} 
-                    profile={profile} 
-                    activeSubTab={settingsTab}
-                    onSubTabChange={setSettingsTab}
+                    customers={customers}
+                    settings={settings} 
+                    editingSale={editingSaleRecord}
+                    onCancelEdit={() => {
+                      setEditingSaleRecord(null);
+                      setActiveTab('history');
+                    }}
                   />
+                )}
+                {activeTab === 'pending' && <PendingPayments sales={sales} customers={customers} />}
+                {activeTab === 'history' && (
+                  <AdminHistory 
+                    sales={sales} 
+                    settings={settings} 
+                    onEditSale={(sale) => {
+                      setEditingSaleRecord(sale);
+                      setActiveTab('sales');
+                    }}
+                  />
+                )}
+                {activeTab === 'settings' && (
+                  !isAdminAuthenticated ? (
+                    <PasswordGate 
+                      onAuthenticated={() => setIsAdminAuthenticated(true)} 
+                      title="Configurações"
+                      description="Insira a senha administrativa para gerenciar preços, estoque e perfil do negócio."
+                    />
+                  ) : (
+                    <SettingsHub 
+                      settings={settings} 
+                      truffles={truffles} 
+                      sales={sales} 
+                      profile={profile} 
+                      activeSubTab={settingsTab}
+                      onSubTabChange={setSettingsTab}
+                      setIsAdminAuthenticated={setIsAdminAuthenticated}
+                    />
+                  )
                 )}
               </motion.div>
             </AnimatePresence>
@@ -2014,11 +2452,15 @@ export default function App() {
             { id: 'dashboard', icon: LayoutDashboard, label: 'Início' },
             { id: 'sales', icon: ShoppingCart, label: 'Venda' },
             { id: 'pending', icon: DollarSign, label: 'Fiados' },
+            { id: 'history', icon: History, label: 'Histórico' },
             { id: 'settings', icon: SettingsIcon, label: 'Config' },
           ].map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id as any)}
+              onClick={() => {
+                if (item.id === 'sales') setEditingSaleRecord(null);
+                setActiveTab(item.id as any);
+              }}
               className={cn(
                 "flex flex-col items-center gap-1 p-3 rounded-2xl transition-all relative",
                 activeTab === item.id ? "text-[#141414]" : "text-[#141414]/30"

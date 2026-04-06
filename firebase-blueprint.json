@@ -32,6 +32,7 @@
         "truffleId": { "type": "string" },
         "quantity": { "type": "integer" },
         "totalPrice": { "type": "number" },
+        "paidAmount": { "type": "number" },
         "discount": { "type": "number" },
         "isCredit": { "type": "boolean" },
         "customerName": { "type": "string" },

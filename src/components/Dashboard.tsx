@@ -1,193 +1,511 @@
 import React, { useMemo } from 'react';
-import { motion } from 'motion/react';
 import { 
-  DollarSign, 
-  AlertCircle, 
   TrendingUp, 
-  Package, 
-  ArrowRight, 
-  History 
+  ShoppingBag, 
+  Users, 
+  AlertTriangle,
+  ArrowUpRight,
+  DollarSign,
+  Briefcase,
+  Layers,
+  Award
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { 
+  AreaChart, 
+  Area, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
 import { Sale, Truffle, UserSettings } from '../types';
 import { cn } from '../utils';
+import { 
+  format, 
+  isToday, 
+  isThisWeek, 
+  isThisMonth, 
+  subDays, 
+  eachDayOfInterval, 
+  startOfMonth, 
+  endOfMonth,
+  parseISO
+} from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface DashboardProps {
   sales: Sale[];
   truffles: Truffle[];
-  onTabChange: (tab: any) => void;
+  customersCount: number;
   settings: UserSettings | null;
+  onTabChange: (tab: any) => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ sales, truffles, onTabChange, settings }) => {
-  const stats = useMemo(() => {
-    const totalRevenue = sales.reduce((acc, s) => acc + s.totalPrice, 0);
-    const pendingRevenue = sales.filter(s => s.status === 'pending').reduce((acc, s) => acc + (s.totalPrice - (s.paidAmount || 0)), 0);
-    const totalSales = sales.length;
-    const threshold = settings?.lowStockAlert || 10;
-    const lowStock = truffles.filter(t => t.stock < threshold).length;
+export const Dashboard: React.FC<DashboardProps> = ({ 
+  sales, 
+  truffles, 
+  customersCount, 
+  settings, 
+  onTabChange 
+}) => {
+  // Low stock check limit (uses user setting or defaults to 5)
+  const lowStockLimit = settings?.lowStockAlert || 5;
 
-    return { totalRevenue, pendingRevenue, totalSales, lowStock };
-  }, [sales, truffles, settings]);
+  const activeSales = useMemo(() => {
+    return sales.filter(s => s.status !== 'cancelled');
+  }, [sales]);
+
+  // Helper dictionary for quick truffle cost lookup
+  const truffleCosts = useMemo(() => {
+    const dict: { [id: string]: number } = {};
+    truffles.forEach(t => {
+      dict[t.id] = t.cost || 0;
+    });
+    return dict;
+  }, [truffles]);
+
+  // Helper dictionary for truffle price lookup
+  const trufflePrices = useMemo(() => {
+    const dict: { [id: string]: number } = {};
+    truffles.forEach(t => {
+      dict[t.id] = t.price || 0;
+    });
+    return dict;
+  }, [truffles]);
+
+  // Calculate profit for any single sale
+  const calculateSaleProfit = (sale: Sale): number => {
+    let profit = 0;
+    if (sale.items && sale.items.length > 0) {
+      sale.items.forEach(item => {
+        const costRaw = item.costPerUnit !== undefined ? item.costPerUnit : (truffleCosts[item.truffleId] || 0);
+        const cost = Number(costRaw) || 0;
+        const price = Number(item.pricePerUnit) || 0;
+        const qty = Number(item.quantity) || 0;
+        profit += qty * (price - cost);
+      });
+      // Deduct overall manual discount, if any
+      profit -= (sale.discount || 0);
+    } else {
+      // Legacy backward compatible check
+      const truffleId = sale.truffleId || '';
+      const unitCost = truffleCosts[truffleId] || 0;
+      profit = sale.totalPrice - (sale.quantity * unitCost);
+    }
+    return Math.max(0, profit);
+  };
+
+  // 1. Calculations for Financial and Quantity Indicators
+  const metrics = useMemo(() => {
+    let faturamentoDia = 0;
+    let faturamentoSemana = 0;
+    let faturamentoMes = 0;
+
+    let lucroDia = 0;
+    let lucroMes = 0;
+
+    const today = new Date();
+
+    activeSales.forEach(sale => {
+      const saleDate = sale.date.toDate();
+      const value = sale.totalPrice;
+      const profit = calculateSaleProfit(sale);
+
+      if (isToday(saleDate)) {
+        faturamentoDia += value;
+        lucroDia += profit;
+      }
+
+      if (isThisWeek(saleDate, { weekStartsOn: 0 })) {
+        faturamentoSemana += value;
+      }
+
+      if (isThisMonth(saleDate)) {
+        faturamentoMes += value;
+        lucroMes += profit;
+      }
+    });
+
+    const totalVendasPeriodo = activeSales.length;
+    const ticketMedio = totalVendasPeriodo > 0 
+      ? activeSales.reduce((acc, s) => acc + s.totalPrice, 0) / totalVendasPeriodo 
+      : 0;
+
+    // Best Seller / Most Profitable tracking
+    const productSalesQty: { [name: string]: number } = {};
+    const productProfits: { [name: string]: number } = {};
+
+    activeSales.forEach(sale => {
+      if (sale.items && sale.items.length > 0) {
+        sale.items.forEach(item => {
+          const name = item.truffleName;
+          const qty = Number(item.quantity) || 0;
+          const costRaw = item.costPerUnit !== undefined ? item.costPerUnit : (truffleCosts[item.truffleId] || 0);
+          const cost = Number(costRaw) || 0;
+          const price = Number(item.pricePerUnit) || 0;
+          const profit = qty * (price - cost);
+
+          productSalesQty[name] = (productSalesQty[name] || 0) + qty;
+          productProfits[name] = (productProfits[name] || 0) + profit;
+        });
+      } else if (sale.truffleName) {
+        // Legacy
+        const name = sale.truffleName;
+        const qty = sale.quantity;
+        const truffleId = sale.truffleId || '';
+        const unitCost = truffleCosts[truffleId] || 0;
+        const profit = sale.totalPrice - (qty * unitCost);
+
+        productSalesQty[name] = (productSalesQty[name] || 0) + qty;
+        productProfits[name] = (productProfits[name] || 0) + profit;
+      }
+    });
+
+    let bestSellerName = 'Nenhum';
+    let bestSellerQty = 0;
+    Object.entries(productSalesQty).forEach(([name, qty]) => {
+      if (qty > bestSellerQty) {
+        bestSellerQty = qty;
+        bestSellerName = name;
+      }
+    });
+
+    let mostProfitableName = 'Nenhum';
+    let mostProfitableValue = 0;
+    Object.entries(productProfits).forEach(([name, profit]) => {
+      if (profit > mostProfitableValue) {
+        mostProfitableValue = profit;
+        mostProfitableName = name;
+      }
+    });
+
+    // Stock alerts
+    const lowStockCount = truffles.filter(t => t.stock <= lowStockLimit).length;
+
+    return {
+      faturamentoDia,
+      faturamentoSemana,
+      faturamentoMes,
+      lucroDia,
+      lucroMes,
+      totalVendasPeriodo,
+      ticketMedio,
+      bestSellerName,
+      bestSellerQty,
+      mostProfitableName,
+      mostProfitableValue,
+      lowStockCount
+    };
+  }, [activeSales, truffles, truffleCosts, lowStockLimit]);
+
+  // 2. Charts Data Processing
+  // Vendas por período (last 15 days evolution)
+  const salesEvolutionData = useMemo(() => {
+    const end = new Date();
+    const start = subDays(end, 14); // 15 days window
+    const days = eachDayOfInterval({ start, end });
+
+    return days.map(day => {
+      const formattedDay = format(day, 'dd/MM');
+      let totalRevenue = 0;
+      let totalProfit = 0;
+
+      activeSales.forEach(sale => {
+        const sDate = sale.date.toDate();
+        if (format(sDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) {
+          totalRevenue += sale.totalPrice;
+          totalProfit += calculateSaleProfit(sale);
+        }
+      });
+
+      return {
+        dia: formattedDay,
+        Faturamento: parseFloat(totalRevenue.toFixed(2)),
+        Lucro: parseFloat(totalProfit.toFixed(2))
+      };
+    });
+  }, [activeSales, truffleCosts]);
+
+  // Product sales chart (Top 5 products)
+  const topProductsData = useMemo(() => {
+    const counts: { [name: string]: { qty: number; profit: number } } = {};
+    
+    activeSales.forEach(sale => {
+      if (sale.items && sale.items.length > 0) {
+        sale.items.forEach(item => {
+          const name = item.truffleName;
+          const qty = Number(item.quantity) || 0;
+          const costRaw = item.costPerUnit !== undefined ? item.costPerUnit : (truffleCosts[item.truffleId] || 0);
+          const cost = Number(costRaw) || 0;
+          const price = Number(item.pricePerUnit) || 0;
+          const profit = qty * (price - cost);
+
+          if (!counts[name]) counts[name] = { qty: 0, profit: 0 };
+          counts[name].qty += qty;
+          counts[name].profit += profit;
+        });
+      } else if (sale.truffleName) {
+        const name = sale.truffleName;
+        const qty = sale.quantity;
+        const truffleId = sale.truffleId || '';
+        const unitCost = truffleCosts[truffleId] || 0;
+        const profit = sale.totalPrice - (qty * unitCost);
+
+        if (!counts[name]) counts[name] = { qty: 0, profit: 0 };
+        counts[name].qty += qty;
+        counts[name].profit += profit;
+      }
+    });
+
+    return Object.entries(counts)
+      .map(([name, stat]) => ({
+        name,
+        Quantidade: stat.qty,
+        Lucro: parseFloat(stat.profit.toFixed(2))
+      }))
+      .sort((a, b) => b.Quantidade - a.Quantidade)
+      .slice(0, 5);
+  }, [activeSales, truffleCosts]);
 
   return (
-    <div className="space-y-8">
-      {settings?.businessName && (
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-2"
-        >
-          <h1 className="text-5xl font-black tracking-tighter italic text-[#141414]">{settings.businessName}</h1>
-        </motion.div>
-      )}
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { id: 'sales', label: 'Receita Total', value: `R$${stats.totalRevenue.toFixed(2)}`, icon: DollarSign, color: 'bg-green-50 text-green-600' },
-          { id: 'pending', label: 'Pendente (Fiado)', value: `R$${stats.pendingRevenue.toFixed(2)}`, icon: AlertCircle, color: 'bg-orange-50 text-orange-600' },
-          { id: 'sales', label: 'Total de Vendas', value: stats.totalSales, icon: TrendingUp, color: 'bg-blue-50 text-blue-600' },
-          { id: 'inventory', label: 'Estoque Baixo', value: stats.lowStock, icon: Package, color: 'bg-red-50 text-red-600' },
-        ].map((stat, i) => (
-          <motion.div 
-            key={i}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.1 }}
-            onClick={() => onTabChange(stat.id)}
-            className="bg-white p-6 rounded-3xl border border-[#141414]/5 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95"
-          >
-            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-4", stat.color)}>
-              <stat.icon size={24} />
-            </div>
-            <p className="text-xs font-bold text-[#141414]/40 uppercase tracking-widest mb-1">{stat.label}</p>
-            <h3 className="text-2xl font-black text-[#141414] tracking-tight">{stat.value}</h3>
-          </motion.div>
-        ))}
+    <div className="space-y-8 font-sans">
+      {/* Welcome Title */}
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-[#141414]/40">Painel Executivo</p>
+        <h3 className="text-3xl font-black tracking-tighter italic">Visão Geral do Negócio</h3>
+        <p className="text-xs text-[#141414]/50 mt-1 font-medium">Relatórios em tempo real da produção e resultados de vendas</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-[2rem] border border-[#141414]/5 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h3 className="text-xl font-black tracking-tight italic">Vendas Recentes</h3>
-              <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest mt-1">Últimas 5 transações</p>
+      {/* Numerical Indicators Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {/* Faturamento do Dia */}
+        <div className="bg-white p-5 md:p-6 rounded-3xl border border-[#141414]/5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="flex items-center gap-2 mb-2 lg:mb-3">
+            <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+              <DollarSign size={16} />
             </div>
-            <button 
-              onClick={() => onTabChange('admin')}
-              className="flex items-center justify-center w-10 h-10 bg-[#F5F5F4] hover:bg-[#141414] hover:text-white rounded-xl transition-all group"
-              title="Ver Todas as Vendas"
-            >
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </button>
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-wider text-[#141414]/40">Faturamento Dia</span>
           </div>
-          <div className="space-y-3">
-            {sales.slice(0, 5).map((sale, i) => (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                key={i} 
-                className="flex items-center justify-between p-4 bg-[#F5F5F4]/50 hover:bg-[#F5F5F4] rounded-2xl transition-colors group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                    <History size={18} className="text-[#141414]/40" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-sm leading-tight">{sale.truffleName || 'Trufa Desconhecida'}</p>
-                    <p className="text-[9px] text-[#141414]/40 font-bold uppercase tracking-wider mt-0.5">
-                      {format(sale.date.toDate(), "dd 'de' MMM, HH:mm", { locale: ptBR })}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-black text-sm">R${sale.totalPrice.toFixed(2)}</p>
-                  <span className={cn(
-                    "text-[7px] font-black uppercase px-2 py-0.5 rounded-full tracking-widest",
-                    sale.status === 'paid' ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
-                  )}>
-                    {sale.status === 'paid' ? 'pago' : 'pendente'}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-            {sales.length === 0 && (
-              <div className="py-10 text-center opacity-20">
-                <History size={40} className="mx-auto mb-2" />
-                <p className="text-xs font-bold uppercase tracking-widest">Nenhuma venda registrada</p>
-              </div>
-            )}
+          <h4 className="text-xl md:text-2xl font-black text-[#141414] tracking-tight">R$ {metrics.faturamentoDia.toFixed(2)}</h4>
+          <span className="text-[8px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded uppercase tracking-wider mt-2 inline-block">Hoje</span>
+        </div>
+
+        {/* Faturamento do Mês */}
+        <div className="bg-white p-5 md:p-6 rounded-3xl border border-[#141414]/5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+          <div className="flex items-center gap-2 mb-2 lg:mb-3">
+            <div className="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center shrink-0">
+              <TrendingUp size={16} />
+            </div>
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-wider text-[#141414]/40">Faturamento Mês</span>
+          </div>
+          <h4 className="text-xl md:text-2xl font-black text-[#141414] tracking-tight">R$ {metrics.faturamentoMes.toFixed(2)}</h4>
+          <p className="text-[8px] font-bold text-[#141414]/30 uppercase tracking-widest mt-2">{format(new Date(), 'MMMM', { locale: ptBR })}</p>
+        </div>
+
+        {/* Lucro do Mês */}
+        <div className="bg-white p-5 md:p-6 rounded-3xl border border-[#141414]/5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+          <div className="flex items-center gap-2 mb-2 lg:mb-3">
+            <div className="w-8 h-8 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+              <ArrowUpRight size={16} />
+            </div>
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-wider text-[#141414]/40">Lucro Líquido Mês</span>
+          </div>
+          <h4 className="text-xl md:text-2xl font-black text-green-600 tracking-tight">R$ {metrics.lucroMes.toFixed(2)}</h4>
+          <span className="text-[8px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded uppercase tracking-wider mt-2 inline-block">Estimado</span>
+        </div>
+
+        {/* Ticket Médio */}
+        <div className="bg-white p-5 md:p-6 rounded-3xl border border-[#141414]/5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+          <div className="flex items-center gap-2 mb-2 lg:mb-3">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Layers size={16} />
+            </div>
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-wider text-[#141414]/40">Ticket Médio</span>
+          </div>
+          <h4 className="text-xl md:text-2xl font-black text-[#141414] tracking-tight">R$ {metrics.ticketMedio.toFixed(2)}</h4>
+          <p className="text-[8px] font-bold text-[#141414]/30 uppercase tracking-widest mt-2">{metrics.totalVendasPeriodo} Vagas totais</p>
+        </div>
+      </div>
+
+      {/* Secondary Quick Metrics Cards (Customer count, lowest stock, Best Seller, Profit Champion) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="bg-[#FAF9F5] p-5 rounded-2xl border border-[#141414]/5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Award size={20} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8px] font-black uppercase tracking-wider text-[#141414]/40">Mais Vendido</p>
+            <h5 className="font-black text-xs text-[#141414] leading-tight truncate">{metrics.bestSellerName}</h5>
+            <span className="text-[8px] font-bold text-[#141414]/40">{metrics.bestSellerQty} un. vendidas</span>
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-[2rem] border border-[#141414]/5 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h3 className="text-xl font-black tracking-tight italic">Status do Estoque</h3>
-              <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest mt-1">Níveis de disponibilidade</p>
-            </div>
-            <button 
-              onClick={() => onTabChange('inventory')}
-              className="flex items-center justify-center w-10 h-10 bg-[#F5F5F4] hover:bg-[#141414] hover:text-white rounded-xl transition-all group"
-              title="Ver Estoque Completo"
-            >
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </button>
+        <div className="bg-[#FAF9F5] p-5 rounded-2xl border border-[#141414]/5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+            <Briefcase size={20} />
           </div>
-          <div className="space-y-6">
-            {truffles.slice(0, 5).map((truffle, i) => {
-              const threshold = settings?.lowStockAlert || 10;
-              const isLow = truffle.stock < threshold;
-              const percentage = Math.min((truffle.stock / 50) * 100, 100);
-              return (
-                <motion.div 
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  key={i} 
-                  className="space-y-2"
-                >
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-sm font-black tracking-tight">{truffle.name}</p>
-                      <p className={cn(
-                        "text-[9px] font-black uppercase tracking-widest",
-                        isLow ? "text-red-500" : "text-[#141414]/40"
-                      )}>
-                        {isLow ? 'Estoque Crítico' : 'Estoque Estável'}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className={cn(
-                        "text-lg font-black leading-none",
-                        isLow ? "text-red-600" : "text-[#141414]"
-                      )}>
-                        {truffle.stock}
-                      </span>
-                      <span className="text-[10px] font-bold text-[#141414]/20 ml-1 uppercase">unid</span>
-                    </div>
-                  </div>
-                  <div className="h-1.5 bg-[#F5F5F4] rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${percentage}%` }}
-                      className={cn(
-                        "h-full rounded-full transition-colors duration-500",
-                        isLow ? "bg-red-500" : "bg-[#141414]"
-                      )}
-                    />
-                  </div>
-                </motion.div>
-              );
-            })}
-            {truffles.length === 0 && (
-              <div className="py-10 text-center opacity-20">
-                <Package size={40} className="mx-auto mb-2" />
-                <p className="text-xs font-bold uppercase tracking-widest">Nenhum produto cadastrado</p>
-              </div>
-            )}
+          <div className="min-w-0">
+            <p className="text-[8px] font-black uppercase tracking-wider text-[#141414]/40">Mais Lucrativo</p>
+            <h5 className="font-black text-xs text-[#141414] leading-tight truncate">{metrics.mostProfitableName}</h5>
+            <span className="text-[8px] font-bold text-green-600">R$ {metrics.mostProfitableValue.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <div 
+          onClick={() => onTabChange('settings')} 
+          className="bg-[#FAF9F5] p-5 rounded-2xl border border-[#141414]/5 flex items-center gap-4 cursor-pointer hover:bg-white transition-colors group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <AlertTriangle size={20} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8px] font-black uppercase tracking-wider text-[#141414]/40">Estoque Baixo</p>
+            <h5 className="font-black text-xs text-[#141414] leading-tight truncate">{metrics.lowStockCount} Produtos</h5>
+            <span className="text-[8px] font-bold text-red-600 hover:underline">Ver Alertas</span>
+          </div>
+        </div>
+
+        <div 
+          onClick={() => onTabChange('settings')} 
+          className="bg-[#FAF9F5] p-5 rounded-2xl border border-[#141414]/5 flex items-center gap-4 cursor-pointer hover:bg-white transition-colors group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-[#141414]/5 text-[#141414] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Users size={20} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8px] font-black uppercase tracking-wider text-[#141414]/40">Total Clientes</p>
+            <h5 className="font-black text-xs text-[#141414] leading-tight truncate">{customersCount} Cadastrados</h5>
+            <span className="text-[8px] font-bold text-[#141414]/40">Gerenciar clientes</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Panels Block */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Evolução de faturamento vs lucro */}
+        <div className="lg:col-span-8 bg-white p-6 md:p-8 rounded-[2.5rem] border border-[#141414]/5 shadow-sm">
+          <div className="mb-6">
+            <h4 className="text-lg font-black tracking-tight italic">Evolução de Vendas de Caixa</h4>
+            <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest mt-0.5">Últimos 15 dias de movimentações</p>
+          </div>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={salesEvolutionData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#141414" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#141414" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#16a34a" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f1f0" />
+                <XAxis 
+                  dataKey="dia" 
+                  stroke="#141414" 
+                  opacity={0.3} 
+                  style={{ fontSize: '10px', fontWeight: 'bold' }} 
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  stroke="#141414" 
+                  opacity={0.3} 
+                  style={{ fontSize: '10px', fontWeight: 'bold' }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => `R$ ${value}`}
+                />
+                <Tooltip 
+                  content={({ active, payload, label }: any) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-[#141414] text-white p-4 rounded-2xl shadow-xl border border-white/10 text-xs font-bold min-w-[150px]">
+                          <p className="mb-3 uppercase tracking-widest text-white/50 text-[10px] border-b border-white/10 pb-2">{label}</p>
+                          {payload.map((entry: any, index: number) => (
+                            <div key={index} className="flex justify-between items-center gap-4 mb-2 last:mb-0">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                <span className="opacity-75">{entry.name}:</span>
+                              </div>
+                              <span>R$ {entry.value !== undefined ? Number(entry.value).toFixed(2) : '0.00'}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', paddingTop: '10px' }} />
+                <Area type="monotone" dataKey="Faturamento" stroke="#141414" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                <Area type="monotone" dataKey="Lucro" stroke="#16a34a" strokeWidth={3} fillOpacity={1} fill="url(#colorProfit)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Top Products bar chart */}
+        <div className="lg:col-span-4 bg-white p-6 md:p-8 rounded-[2.5rem] border border-[#141414]/5 shadow-sm">
+          <div className="mb-6">
+            <h4 className="text-lg font-black tracking-tight italic">Mais Vendidos</h4>
+            <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest mt-0.5">Top 5 sabores de produtos (Unidades)</p>
+          </div>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topProductsData} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f1f0" />
+                <XAxis 
+                  type="number" 
+                  stroke="#141414" 
+                  opacity={0.3} 
+                  style={{ fontSize: '10px', fontWeight: 'bold' }} 
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  stroke="#141414" 
+                  opacity={0.7} 
+                  width={90} 
+                  style={{ fontSize: "10px", fontWeight: "bold" }} 
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => value.length > 12 ? `${value.substring(0, 10)}...` : value}
+                />
+                <Tooltip 
+                  cursor={{ fill: '#f5f5f4' }}
+                  content={({ active, payload, label }: any) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-[#141414] text-white p-4 rounded-2xl shadow-xl border border-white/10 text-xs font-bold">
+                          <p className="mb-3 uppercase tracking-widest text-white/50 text-[10px] border-b border-white/10 pb-2">{label}</p>
+                          {payload.map((entry: any, index: number) => (
+                            <div key={index} className="flex justify-between items-center gap-4 mb-2 last:mb-0">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                <span className="opacity-75">{entry.name}:</span>
+                              </div>
+                              <span>{entry.value} un.</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="Quantidade" fill="#141414" radius={[0, 8, 8, 0]} barSize={24}>
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>

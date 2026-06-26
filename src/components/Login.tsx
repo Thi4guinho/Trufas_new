@@ -42,7 +42,7 @@ export const Login: React.FC = () => {
             <Package className="text-white" size={40} />
           </div>
           <h1 className="text-4xl font-black text-[#141414] tracking-tighter mb-2 italic">TruffleTech</h1>
-          <p className="text-[#141414]/60 font-medium">Gestão Profissional de Trufas</p>
+          <p className="text-[#141414]/60 font-medium">Gestão Profissional de Produtos</p>
         </div>
 
         <button 

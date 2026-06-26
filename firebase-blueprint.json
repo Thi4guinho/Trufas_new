@@ -24,27 +24,56 @@
       },
       "required": ["name", "price", "stock", "ownerId"]
     },
+    "Customer": {
+      "title": "Customer",
+      "description": "Customer fidalization info",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "description": { "type": "string" },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["name", "ownerId"]
+    },
     "Sale": {
       "title": "Sale Record",
       "description": "Record of a truffle sale",
       "type": "object",
       "properties": {
-        "truffleId": { "type": "string" },
+        "saleNumber": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "truffleId": { "type": "string" },
+              "truffleName": { "type": "string" },
+              "quantity": { "type": "integer" },
+              "pricePerUnit": { "type": "number" },
+              "costPerUnit": { "type": "number" }
+            }
+          }
+        },
         "quantity": { "type": "integer" },
         "totalPrice": { "type": "number" },
         "paidAmount": { "type": "number" },
         "discount": { "type": "number" },
         "isCredit": { "type": "boolean" },
         "customerName": { "type": "string" },
+        "customerId": { "type": "string" },
         "date": { "type": "string", "format": "date-time" },
         "ownerId": { "type": "string" },
-        "status": { "type": "string", "enum": ["paid", "pending"] }
+        "status": { "type": "string", "enum": ["preparing", "finished", "cancelled"] },
+        "paymentStatus": { "type": "string", "enum": ["paid", "pending"] },
+        "paymentMethod": { "type": "string", "enum": ["dinheiro", "cartao_debito", "cartao_credito", "pix", "fiado"] },
+        "notes": { "type": "string" }
       },
-      "required": ["truffleId", "quantity", "totalPrice", "ownerId", "status"]
+      "required": ["saleNumber", "items", "quantity", "totalPrice", "paidAmount", "discount", "isCredit", "ownerId", "status", "paymentStatus", "paymentMethod"]
     },
     "Settings": {
       "title": "Pricing Settings",
-      "description": "Progressive pricing rules",
+      "description": "Progressive pricing rules and company info",
       "type": "object",
       "properties": {
         "ownerId": { "type": "string" },
@@ -57,8 +86,41 @@
               "price": { "type": "number" }
             }
           }
-        }
-      }
+        },
+        "businessName": { "type": "string" },
+        "businessPhone": { "type": "string" },
+        "lowStockAlert": { "type": "integer" }
+      },
+      "required": ["ownerId"]
+    },
+    "CashflowRecord": {
+      "title": "Cashflow Record",
+      "description": "Cashflow entries for general income and expense items",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["income", "expense"] },
+        "value": { "type": "number" },
+        "category": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "responsible": { "type": "string" },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["type", "value", "category", "date", "description", "responsible", "ownerId"]
+    },
+    "AuditLog": {
+      "title": "Audit Log",
+      "description": "Log of actions and events performed by users for compliance and safety",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["userId", "userName", "action", "details", "date", "ownerId"]
     }
   },
   "firestore": {
@@ -70,13 +132,25 @@
       "schema": "Truffle",
       "description": "Truffle inventory"
     },
+    "/customers/{customerId}": {
+      "schema": "Customer",
+      "description": "Customer profiles and credit metrics"
+    },
     "/sales/{saleId}": {
       "schema": "Sale",
       "description": "Sales history"
     },
     "/settings/{ownerId}": {
       "schema": "Settings",
-      "description": "User-specific pricing settings"
+      "description": "User-specific settings and business info"
+    },
+    "/cashflow/{cashflowId}": {
+      "schema": "CashflowRecord",
+      "description": "Internal cashflow list entries"
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "User security action and verification records"
     }
   }
 }

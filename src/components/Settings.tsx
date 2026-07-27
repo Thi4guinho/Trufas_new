@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, ShieldCheck, HelpCircle } from 'lucide-react';
-import { doc, setDoc, collection, addDoc, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, collection, addDoc, Timestamp, getDocs, query, where, deleteDoc } from 'firebase/firestore';
 import { UserSettings, PricingRule, OperationType } from '../types';
 import { auth, db } from '../firebase';
 import { handleFirestoreError } from '../utils';
@@ -15,7 +15,53 @@ export const Settings: React.FC<SettingsProps> = ({ settings, profile }) => {
   const [businessName, setBusinessName] = useState(settings?.businessName || 'TruffleTech');
   const [businessPhone, setBusinessPhone] = useState(settings?.businessPhone || '');
   const [lowStockAlert, setLowStockAlert] = useState<number>(settings?.lowStockAlert || 5);
+  const [businessModel, setBusinessModel] = useState<string>(settings?.businessModel || 'production');
   const [isSaving, setIsSaving] = useState(false);
+
+  
+  const [isResetting, setIsResetting] = useState(false);
+  const handleResetDatabase = async () => {
+    const ownerId = profile?.companyId || auth.currentUser?.uid;
+    if (!ownerId) return;
+
+    if (!window.confirm('ATENÇÃO: Você tem certeza ABSOLUTA que deseja apagar TODOS os dados do sistema? Esta ação é irreversível.')) {
+      return;
+    }
+    
+    if (window.prompt('Para confirmar a exclusão, digite a palavra: APAGAR') !== 'APAGAR') {
+      alert('Exclusão cancelada.');
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const collections = [
+        'truffles',
+        'sales',
+        'customers',
+        'cashflow',
+        'audit_logs',
+        'production_batches',
+        'stock_batches',
+        'materials'
+      ];
+
+      for (const collName of collections) {
+        const q = query(collection(db, collName), where('ownerId', '==', ownerId));
+        const snap = await getDocs(q);
+        const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deletePromises);
+      }
+
+      alert('Sistema resetado com sucesso! Todos os dados foram apagados.');
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao tentar resetar o sistema.');
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -25,7 +71,8 @@ export const Settings: React.FC<SettingsProps> = ({ settings, profile }) => {
         progressivePricing: rules,
         businessName: businessName.trim(),
         businessPhone: businessPhone.trim(),
-        lowStockAlert: Number(lowStockAlert)
+        lowStockAlert: Number(lowStockAlert),
+        businessModel: businessModel as any
       };
 
       await setDoc(doc(db, 'settings', auth.currentUser!.uid), updatedSettings, { merge: true });
@@ -80,6 +127,19 @@ export const Settings: React.FC<SettingsProps> = ({ settings, profile }) => {
             />
           </div>
 
+
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Modelo de Negócio</label>
+            <select
+              value={businessModel}
+              onChange={(e) => setBusinessModel(e.target.value)}
+              className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 text-sm text-[#141414]"
+            >
+              <option value="retail">Revenda (Somente Estoque Final)</option>
+              <option value="production">Produção (Ingredientes e Fichas Técnicas)</option>
+              <option value="service">Prestação de Serviços</option>
+            </select>
+          </div>
           <div>
             <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Alerta de Estoque Baixo (Un.)</label>
             <input 
@@ -112,7 +172,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, profile }) => {
                 <input 
                   type="number"
                   min="2"
-                  value={rule.minQty}
+                  value={Number.isNaN(rule.minQty) ? '' : rule.minQty}
                   onChange={(e) => {
                     const newRules = [...rules];
                     newRules[i].minQty = parseInt(e.target.value) || 1;
@@ -127,7 +187,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, profile }) => {
                   type="number"
                   step="0.01"
                   min="0.1"
-                  value={rule.price}
+                  value={Number.isNaN(rule.price) ? '' : rule.price}
                   onChange={(e) => {
                     const newRules = [...rules];
                     newRules[i].price = parseFloat(e.target.value) || 0;
@@ -146,7 +206,29 @@ export const Settings: React.FC<SettingsProps> = ({ settings, profile }) => {
           ))}
         </div>
 
+        
+        <div className="pt-6 border-t border-[#141414]/10 mt-8 mb-4">
+          <div className="bg-red-50 p-6 rounded-2xl border border-red-100 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+              <h3 className="font-bold text-red-800 flex items-center gap-2">
+                <Trash2 className="w-5 h-5" />
+                Zona de Perigo: Resetar Sistema
+              </h3>
+              <p className="text-sm text-red-600 mt-1">
+                Isso apagará permanentemente todos os produtos, vendas, clientes, materiais e fluxo de caixa.
+              </p>
+            </div>
+            <button
+              onClick={handleResetDatabase}
+              disabled={isResetting}
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-colors disabled:opacity-50"
+            >
+              {isResetting ? 'Apagando...' : 'Apagar Todos os Dados'}
+            </button>
+          </div>
+        </div>
         <div className="flex gap-4 pt-4">
+
           <button 
             type="button"
             onClick={() => setRules([...rules, { minQty: 10, price: 2.50 }])}

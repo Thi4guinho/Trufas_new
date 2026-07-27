@@ -48,6 +48,9 @@ import { AdminHistory } from './components/AdminHistory';
 import { PendingPayments } from './components/PendingPayments';
 import { Settings } from './components/Settings';
 import { SettingsHub } from './components/SettingsHub';
+import { MaterialManager } from './components/MaterialManager';
+import { ProductionManager } from './components/ProductionManager';
+import { Material, ProductionBatch } from './types';
 import { CashflowManager } from './components/CashflowManager';
 import { AuditLogManager } from './components/AuditLogManager';
 import { PasswordGate } from './components/PasswordGate';
@@ -60,12 +63,14 @@ export default function App() {
   const [company, setCompany] = useState<Company | null>(null);
   const [currentMember, setCurrentMember] = useState<CompanyMember | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'sales' | 'pending' | 'history' | 'cashflow' | 'audit_logs' | 'truffles' | 'customers' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'sales' | 'pending' | 'history' | 'cashflow' | 'audit_logs' | 'truffles' | 'customers' | 'settings' | 'materials' | 'production'>('dashboard');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [editingSaleRecord, setEditingSaleRecord] = useState<Sale | null>(null);
   
   // Real-time collections states
   const [truffles, setTruffles] = useState<Truffle[]>([]);
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [productionBatches, setProductionBatches] = useState<ProductionBatch[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [cashflow, setCashflow] = useState<CashflowRecord[]>([]);
@@ -359,6 +364,7 @@ export default function App() {
               { id: 'cashflow', label: 'Fluxo de Caixa', icon: TrendingDown, show: hasPermission(currentMember, 'finance', 'view') },
               { id: 'truffles', label: 'Estoque / Produtos', icon: Package, show: hasPermission(currentMember, 'truffles', 'view') || hasPermission(currentMember, 'stock', 'view') },
               { id: 'customers', label: 'Meus Clientes', icon: UserIcon, show: hasPermission(currentMember, 'customers', 'view') },
+              { id: 'production', label: 'Lotes de Estoque', icon: Package, show: hasPermission(currentMember, 'truffles', 'view') || hasPermission(currentMember, 'stock', 'view') },
               { id: 'audit_logs', label: 'Ações / Auditoria', icon: ShieldCheck, show: hasPermission(currentMember, 'reports', 'view') },
               { id: 'settings', label: 'Configurações', icon: SettingsIcon, show: currentMember?.role === 'owner' || hasPermission(currentMember, 'settings', 'view') || hasPermission(currentMember, 'settings', 'members') },
             ].filter(i => i.show).map((item) => (
@@ -514,6 +520,12 @@ export default function App() {
                   />
                 )}
 
+                {activeTab === 'materials' && (
+                  <MaterialManager materials={materials} />
+                )}
+                {activeTab === 'production' && (
+                  <ProductionManager batches={productionBatches} products={truffles} profile={profile} />
+                )}
                 {activeTab === 'settings' && (
                   !isAdminAuthenticated ? (
                     <PasswordGate 

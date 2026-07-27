@@ -284,7 +284,7 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
                     step="0.01"
                     placeholder="0.00"
                     required
-                    value={value}
+                    value={Number.isNaN(value as number) ? '' : value}
                     onChange={(e) => setValue(e.target.value === '' ? '' : parseFloat(e.target.value))}
                     className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10"
                   />

@@ -20,18 +20,21 @@ import { handleFirestoreError, cn } from '../utils';
 interface TruffleManagerProps {
   truffles: Truffle[];
   profile: any;
+  materials?: any[];
   lowStockLimit?: number;
 }
 
 export const TruffleManager: React.FC<TruffleManagerProps> = ({ 
   truffles, 
   profile,
+  materials = [],
   lowStockLimit = 5 
 }) => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState<number | ''>('');
   const [cost, setCost] = useState<number | ''>('');
   const [stock, setStock] = useState<number | ''>('');
+  const [composition, setComposition] = useState<any>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +55,8 @@ export const TruffleManager: React.FC<TruffleManagerProps> = ({
         price: Number(price),
         cost: Number(cost),
         stock: Number(stock),
-        ownerId: profile?.companyId || auth.currentUser!.uid
+        ownerId: profile?.companyId || auth.currentUser!.uid,
+        ...(composition ? { composition } : {})
       };
 
       if (editingId) {
@@ -187,7 +191,7 @@ export const TruffleManager: React.FC<TruffleManagerProps> = ({
                   type="number"
                   step="0.01"
                   placeholder="0.00"
-                  value={cost}
+                  value={Number.isNaN(cost as number) ? '' : cost}
                   onChange={(e) => setCost(e.target.value === '' ? '' : parseFloat(e.target.value))}
                   className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 transition-all text-sm"
                   required
@@ -199,7 +203,7 @@ export const TruffleManager: React.FC<TruffleManagerProps> = ({
                   type="number"
                   step="0.01"
                   placeholder="0.00"
-                  value={price}
+                  value={Number.isNaN(price as number) ? '' : price}
                   onChange={(e) => setPrice(e.target.value === '' ? '' : parseFloat(e.target.value))}
                   className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 transition-all text-sm"
                   required
@@ -212,12 +216,13 @@ export const TruffleManager: React.FC<TruffleManagerProps> = ({
               <input 
                 type="number"
                 placeholder="0"
-                value={stock}
+                value={Number.isNaN(stock as number) ? '' : stock}
                 onChange={(e) => setStock(e.target.value === '' ? '' : parseInt(e.target.value))}
                 className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 transition-all text-sm"
                 required
               />
             </div>
+
 
             {/* Live margin previews */}
             {price !== '' && cost !== '' && (

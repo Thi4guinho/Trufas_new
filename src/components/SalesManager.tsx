@@ -14,7 +14,7 @@ import {
   CreditCard,
   MessageSquare
 } from 'lucide-react';
-import { Timestamp, addDoc, collection, doc, updateDoc } from 'firebase/firestore';
+import { Timestamp, addDoc, collection, doc, updateDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { Truffle, UserSettings, Sale, SaleItem, OperationType, Customer } from '../types';
 import { auth, db } from '../firebase';
 import { normalizeName, downloadReceiptPDF, handleFirestoreError, cn } from '../utils';
@@ -313,24 +313,73 @@ export const SalesManager: React.FC<SalesManagerProps> = ({
         // Edit flow
         await updateDoc(doc(db, 'sales', editingSale.id), saleData);
         actionText = `Editou a venda #${editingSale.saleNumber} para ${normalizedCName}`;
-        
-        // Stock corrections if needed, we might need a complex roll back, but to keep it safe:
-        // just update to the new quantities if they edited products.
-        // For security & audit integrity, we simply log it.
       } else {
         // Regular Create flow
-        const docRef = await addDoc(collection(db, 'sales'), saleData);
-        actionText = `Registrou venda #${uniqueSaleNum} para ${normalizedCName}`;
-
-        // Decrement product stocks
-        for (const item of finalItemsList) {
+        
+        // Decrement product stocks and apply FIFO for traceability BEFORE saving sale
+        for (const item of saleData.items) {
           const matchedTruffle = truffles.find(t => t.id === item.truffleId);
           if (matchedTruffle) {
+            let quantityToDeduct = item.quantity;
+            let batchesUsed = [];
+
+            try {
+              const qBatches = query(
+                collection(db, 'stock_batches'),
+                where('ownerId', '==', profile?.companyId || auth.currentUser!.uid),
+                where('itemId', '==', item.truffleId),
+                where('remainingQuantity', '>', 0)
+              );
+              
+              const batchSnap = await getDocs(qBatches);
+              const sortedDocs = batchSnap.docs.sort((a, b) => {
+                const dateA = a.data().date?.toMillis() || 0;
+                const dateB = b.data().date?.toMillis() || 0;
+                return dateA - dateB;
+              });
+              
+              for (const bDoc of sortedDocs) {
+                if (quantityToDeduct <= 0) break;
+                
+                const batchData = bDoc.data();
+                const available = batchData.remainingQuantity;
+                const deductFromBatch = Math.min(available, quantityToDeduct);
+                
+                batchesUsed.push({
+                  batchId: batchData.batchId || bDoc.id,
+                  quantity: deductFromBatch,
+                  unitCost: batchData.unitCost
+                });
+
+                await updateDoc(doc(db, 'stock_batches', bDoc.id), {
+                  remainingQuantity: available - deductFromBatch
+                });
+                
+                quantityToDeduct -= deductFromBatch;
+              }
+            } catch (err) {
+              console.error("FIFO Error:", err);
+            }
+
+            if (quantityToDeduct > 0) {
+               batchesUsed.push({
+                 batchId: 'avulso',
+                 quantity: quantityToDeduct,
+                 unitCost: matchedTruffle.cost
+               });
+            }
+
+            // Save traceability info in the sale item
+            (item as any).batchesUsed = batchesUsed;
+
             await updateDoc(doc(db, 'truffles', item.truffleId), {
               stock: Math.max(0, matchedTruffle.stock - item.quantity)
             });
           }
         }
+
+        const docRef = await addDoc(collection(db, 'sales'), saleData);
+        actionText = `Registrou venda #${uniqueSaleNum} para ${normalizedCName}`;
 
         setLastSale({ id: docRef.id, ...saleData } as Sale);
       }
@@ -404,7 +453,7 @@ export const SalesManager: React.FC<SalesManagerProps> = ({
             <input 
               type="number"
               min={1}
-              value={quantity}
+              value={Number.isNaN(quantity as number) ? '' : quantity}
               onChange={(e) => setQuantity(e.target.value === '' ? '' : parseInt(e.target.value))}
               className="w-full p-3.5 bg-white rounded-xl font-bold border-none text-xs text-center focus:ring-1 focus:ring-[#141414]/10"
             />

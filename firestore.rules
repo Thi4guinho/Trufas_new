@@ -25,6 +25,18 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
+    match /materials/{materialId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /production_batches/{batchId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /stock_batches/{batchId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /loss_records/{lossId} {
+      allow read, write: if isAuthenticated();
+    }
     match /truffles/{truffleId} {
       allow read, write: if isAuthenticated();
     }

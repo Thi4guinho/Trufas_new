@@ -14,6 +14,17 @@ export const PasswordGate: React.FC<PasswordGateProps> = ({
 }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
+  const [autoBiometricsTriggered, setAutoBiometricsTriggered] = useState(false);
+  const [showPasswordFallback, setShowPasswordFallback] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(true);
+  
+  React.useEffect(() => {
+    if (!autoBiometricsTriggered) {
+      setAutoBiometricsTriggered(true);
+      // Auto trigger biometrics on mount
+      handleBiometricAuth(true);
+    }
+  }, [autoBiometricsTriggered]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,14 +36,18 @@ export const PasswordGate: React.FC<PasswordGateProps> = ({
     }
   };
 
-    const handleBiometricAuth = async () => {
+    const handleBiometricAuth = async (isAuto = false) => {
     try {
       if (window.self !== window.top) {
-        alert("A biometria por digital está bloqueada na visualização de prévia. Por favor, clique no botão 'Open in New Tab' (ícone de janela) no topo da tela para abrir o sistema em uma aba independente e usar a digital.");
+        
+        setShowPasswordFallback(true);
+        setIsAuthenticating(false);
         return;
       }
       if (!window.PublicKeyCredential) {
-        alert("Autenticação biométrica não suportada neste dispositivo/navegador.");
+        
+        setShowPasswordFallback(true);
+        setIsAuthenticating(false);
         return;
       }
       
@@ -71,10 +86,14 @@ export const PasswordGate: React.FC<PasswordGateProps> = ({
       }
     } catch (err) {
       if (err instanceof Error && (err.name === 'NotAllowedError' || err.message.includes('feature is not enabled'))) {
-        alert("A biometria está bloqueada na visualização atual. Para usar a digital, clique no botão 'Open in New Tab' (ícone de janela) no topo da tela do AI Studio para abrir o aplicativo em uma nova aba.");
+        
+        setShowPasswordFallback(true);
+        setIsAuthenticating(false);
       } else {
         console.error(err);
-        alert("Autenticação biométrica falhou ou foi cancelada.");
+        
+        setShowPasswordFallback(true);
+        setIsAuthenticating(false);
       }
     }
   };
@@ -88,6 +107,21 @@ export const PasswordGate: React.FC<PasswordGateProps> = ({
       <p className="text-[#141414]/40 dark:text-zinc-400 font-bold text-xs mb-8 leading-relaxed">
         {description}
       </p>
+      {!showPasswordFallback ? (
+        <div className="space-y-6 text-center">
+          <div className="animate-pulse flex justify-center">
+            <Fingerprint size={64} className="text-[#141414]/20 dark:text-zinc-700" />
+          </div>
+          <p className="text-sm font-bold text-[#141414] dark:text-zinc-100">Aguardando biometria...</p>
+          <button 
+            type="button" 
+            onClick={() => setShowPasswordFallback(true)}
+            className="text-xs font-bold uppercase tracking-wider text-[#141414]/50 dark:text-zinc-500 hover:text-[#141414] dark:hover:text-zinc-300"
+          >
+            Usar senha digitada
+          </button>
+        </div>
+      ) : (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
           <input 
@@ -114,13 +148,14 @@ export const PasswordGate: React.FC<PasswordGateProps> = ({
         <div className="pt-4 border-t border-[#141414]/10 dark:border-zinc-50/10 mt-4">
           <button 
             type="button" 
-            onClick={handleBiometricAuth}
+            onClick={() => handleBiometricAuth(false)}
             className="w-full bg-[#F5F5F4] dark:bg-zinc-800 text-[#141414] dark:text-zinc-100 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#E5E5E4] dark:hover:bg-zinc-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
             <Fingerprint size={20} /> Entrar com Digital (Biometria)
           </button>
         </div>
       </form>
+      )}
     </div>
   );
 };

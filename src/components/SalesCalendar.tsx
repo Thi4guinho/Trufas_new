@@ -34,7 +34,7 @@ export const SalesCalendar: React.FC<SalesCalendarProps> = ({ sales }) => {
 
   // Aggregate sales by day (YYYY-MM-DD)
   const salesByDayDetails = useMemo(() => {
-    const map = new Map<string, { total: number, quantity: number, products: Record<string, number>, payments: Record<string, number>, hours: Record<string, number> }>();
+    const map = new Map<string, { total: number, quantity: number, products: Record<string, number>, payments: Record<string, number>, hours: Record<string, number>, _productNames?: Record<string, string> }>();
     
     sales.forEach(s => {
       const date = s.date.toDate();
@@ -50,7 +50,14 @@ export const SalesCalendar: React.FC<SalesCalendarProps> = ({ sales }) => {
       
       s.items.forEach(item => {
         dayData.quantity += item.quantity;
-        dayData.products[item.truffleName] = (dayData.products[item.truffleName] || 0) + item.quantity;
+        const normalizedName = (item.truffleName || 'Desconhecido').trim().replace(/\s+/g, ' ');
+        const key = normalizedName.toLowerCase();
+        
+        // Ensure we preserve the best capitalization
+        if (!dayData._productNames) dayData._productNames = {};
+        if (!dayData._productNames[key]) dayData._productNames[key] = normalizedName;
+        
+        dayData.products[key] = (dayData.products[key] || 0) + item.quantity;
       });
       
       dayData.payments[s.paymentMethod] = (dayData.payments[s.paymentMethod] || 0) + s.totalPrice;
@@ -137,7 +144,8 @@ export const SalesCalendar: React.FC<SalesCalendarProps> = ({ sales }) => {
     let peakHour = 'Nenhum';
     
     if (details && details.total > 0) {
-      topProduct = Object.entries(details.products).sort((a, b) => (b[1] as number) - (a[1] as number))[0]?.[0] || 'Nenhum';
+      const topKey = Object.entries(details.products).sort((a, b) => (b[1] as number) - (a[1] as number))[0]?.[0];
+      topProduct = topKey && details._productNames ? (details._productNames[topKey] || topKey) : (topKey || 'Nenhum');
       const pmMap: Record<string, string> = {
         'pix': 'PIX',
         'credit': 'Crédito',

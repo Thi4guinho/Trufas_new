@@ -155,48 +155,53 @@ export const Dashboard: React.FC<DashboardProps> = ({
     // Best Seller / Most Profitable tracking
     const productSalesQty: { [name: string]: number } = {};
     const productProfits: { [name: string]: number } = {};
+    const productNames: { [name: string]: string } = {};
 
     activeSales.forEach(sale => {
       if (sale.items && sale.items.length > 0) {
         sale.items.forEach(item => {
-          const name = item.truffleName;
+          const rawName = item.truffleName || 'Desconhecido';
+          const nameKey = rawName.trim().toLowerCase();
           const qty = Number(item.quantity) || 0;
           const costRaw = item.costPerUnit !== undefined ? item.costPerUnit : (truffleCosts[item.truffleId] || 0);
           const cost = Number(costRaw) || 0;
           const price = Number(item.pricePerUnit) || 0;
           const profit = qty * (price - cost);
 
-          productSalesQty[name] = (productSalesQty[name] || 0) + qty;
-          productProfits[name] = (productProfits[name] || 0) + profit;
+          productNames[nameKey] = rawName;
+          productSalesQty[nameKey] = (productSalesQty[nameKey] || 0) + qty;
+          productProfits[nameKey] = (productProfits[nameKey] || 0) + profit;
         });
       } else if (sale.truffleName) {
         // Legacy
         const name = sale.truffleName;
+        const nameKey = name.trim().toLowerCase();
         const qty = sale.quantity;
         const truffleId = sale.truffleId || '';
         const unitCost = truffleCosts[truffleId] || 0;
         const profit = sale.totalPrice - (qty * unitCost);
 
-        productSalesQty[name] = (productSalesQty[name] || 0) + qty;
-        productProfits[name] = (productProfits[name] || 0) + profit;
+        productNames[nameKey] = name;
+        productSalesQty[nameKey] = (productSalesQty[nameKey] || 0) + qty;
+        productProfits[nameKey] = (productProfits[nameKey] || 0) + profit;
       }
     });
 
     let bestSellerName = 'Nenhum';
     let bestSellerQty = 0;
-    Object.entries(productSalesQty).forEach(([name, qty]) => {
+    Object.entries(productSalesQty).forEach(([nameKey, qty]) => {
       if (qty > bestSellerQty) {
         bestSellerQty = qty;
-        bestSellerName = name;
+        bestSellerName = productNames[nameKey] || nameKey;
       }
     });
 
     let mostProfitableName = 'Nenhum';
     let mostProfitableValue = 0;
-    Object.entries(productProfits).forEach(([name, profit]) => {
+    Object.entries(productProfits).forEach(([nameKey, profit]) => {
       if (profit > mostProfitableValue) {
         mostProfitableValue = profit;
-        mostProfitableName = name;
+        mostProfitableName = productNames[nameKey] || nameKey;
       }
     });
 
@@ -274,40 +279,41 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Product sales chart (Top 5 products)
   const topProductsData = useMemo(() => {
-    const counts: { [name: string]: { qty: number; profit: number } } = {};
+    const counts: { [nameKey: string]: { name: string, qty: number; profit: number } } = {};
     
     activeSales.forEach(sale => {
       if (sale.items && sale.items.length > 0) {
         sale.items.forEach(item => {
-          const name = item.truffleName;
+          const rawName = item.truffleName || 'Desconhecido';
+          const nameKey = rawName.trim().toLowerCase();
           const qty = Number(item.quantity) || 0;
           const costRaw = item.costPerUnit !== undefined ? item.costPerUnit : (truffleCosts[item.truffleId] || 0);
           const cost = Number(costRaw) || 0;
           const price = Number(item.pricePerUnit) || 0;
           const profit = qty * (price - cost);
 
-          if (!counts[name]) counts[name] = { qty: 0, profit: 0 };
-          counts[name].qty += qty;
-          counts[name].profit += profit;
+          if (!counts[nameKey]) counts[nameKey] = { name: rawName, qty: 0, profit: 0 };
+          counts[nameKey].qty += qty;
+          counts[nameKey].profit += profit;
         });
       } else if (sale.truffleName) {
-        const name = sale.truffleName;
+        const rawName = sale.truffleName;
+        const nameKey = rawName.trim().toLowerCase();
         const qty = sale.quantity;
         const truffleId = sale.truffleId || '';
         const unitCost = truffleCosts[truffleId] || 0;
         const profit = sale.totalPrice - (qty * unitCost);
 
-        if (!counts[name]) counts[name] = { qty: 0, profit: 0 };
-        counts[name].qty += qty;
-        counts[name].profit += profit;
+        if (!counts[nameKey]) counts[nameKey] = { name: rawName, qty: 0, profit: 0 };
+        counts[nameKey].qty += qty;
+        counts[nameKey].profit += profit;
       }
     });
 
-    return Object.entries(counts)
-      .map(([name, stat]) => ({
-        name,
+    return Object.values(counts)
+      .map((stat) => ({
+        name: stat.name,
         Quantidade: stat.qty,
-        
       }))
       .sort((a, b) => b.Quantidade - a.Quantidade)
       .slice(0, 5);

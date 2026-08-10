@@ -156,7 +156,7 @@ export const MaterialManager: React.FC<MaterialManagerProps> = ({
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-4 border-b border-slate-200">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -257,7 +257,7 @@ export const MaterialManager: React.FC<MaterialManagerProps> = ({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+              className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
             >
               <div className="p-6 border-b border-slate-100">
                 <h3 className="text-xl font-bold text-slate-800">
@@ -295,7 +295,7 @@ export const MaterialManager: React.FC<MaterialManagerProps> = ({
                     <select
                       value={unit}
                       onChange={(e) => setUnit(e.target.value as any)}
-                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-zinc-900"
                     >
                       <option value="g">Gramas (g)</option>
                       <option value="kg">Quilos (kg)</option>

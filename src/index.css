@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+@layer base {
+  body {
+    @apply bg-[#E4E3E0] dark:bg-zinc-950 text-[#141414] dark:text-zinc-100;
+  }
+}

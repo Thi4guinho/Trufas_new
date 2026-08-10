@@ -1,0 +1,11 @@
+{
+  "name": "Gestão de Sócios",
+  "description": "Painel de controle administrativo",
+  "requestFramePermissions": [
+    "publickey-credentials-create",
+    "publickey-credentials-get"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -31,30 +31,30 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#E4E3E0] p-4 font-sans">
+    <div className="min-h-screen flex items-center justify-center bg-[#E4E3E0] dark:bg-zinc-950 p-4 font-sans">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-white p-10 rounded-[2rem] shadow-2xl border border-[#141414]/10"
+        className="max-w-md w-full bg-white dark:bg-zinc-900 p-10 rounded-[2rem] shadow-2xl border border-[#141414]/10 dark:border-zinc-50/20"
       >
         <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-[#141414] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <Package className="text-white" size={40} />
+          <div className="w-20 h-20 bg-[#141414] dark:bg-zinc-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <Package className="text-white dark:text-zinc-900" size={40} />
           </div>
-          <h1 className="text-4xl font-black text-[#141414] tracking-tighter mb-2 italic">TruffleTech</h1>
-          <p className="text-[#141414]/60 font-medium">Gestão Profissional de Produtos</p>
+          <h1 className="text-4xl font-black text-[#141414] dark:text-zinc-100 tracking-tighter mb-2 italic">TruffleTech</h1>
+          <p className="text-[#141414]/60 dark:text-zinc-300 font-medium">Gestão Profissional de Produtos</p>
         </div>
 
         <button 
           onClick={handleLogin}
-          className="w-full bg-[#141414] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-[#141414]/90 transition-all active:scale-[0.98] shadow-xl"
+          className="w-full bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-[#141414]/90 transition-all active:scale-[0.98] shadow-xl"
         >
           <img src="https://www.google.com/favicon.ico" className="w-5 h-5 invert" alt="Google" />
           Entrar com Google
         </button>
 
-        <div className="mt-10 pt-8 border-t border-[#141414]/5 text-center">
-          <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#141414]/40">Protegido por Firebase Enterprise</p>
+        <div className="mt-10 pt-8 border-t border-[#141414]/5 dark:border-zinc-50/10 text-center">
+          <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#141414]/40 dark:text-zinc-400">Protegido por Firebase Enterprise</p>
         </div>
       </motion.div>
     </div>

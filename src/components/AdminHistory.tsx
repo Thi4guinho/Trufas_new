@@ -15,7 +15,7 @@ import {
   User,
   ShoppingBag
 } from 'lucide-react';
-import { deleteDoc, doc, updateDoc, collection, addDoc, Timestamp } from 'firebase/firestore';
+import { deleteDoc, doc, updateDoc, collection, addDoc, Timestamp, increment, getDoc } from 'firebase/firestore';
 import { Sale, UserSettings, OperationType } from '../types';
 import { db, auth } from '../firebase';
 import { downloadReceiptPDF, handleFirestoreError, cn } from '../utils';
@@ -67,6 +67,48 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
     try {
       const sale = sales.find(s => s.id === saleId);
       if (!sale) return;
+
+      if (newStatus === 'cancelled' && sale.status !== 'cancelled') {
+        const itemsToProcess = sale.items && sale.items.length > 0 
+          ? sale.items 
+          : [{ truffleId: (sale as any).truffleId, quantity: sale.quantity, batchesUsed: (sale as any).batchesUsed }];
+
+        for (const item of itemsToProcess) {
+          if (!item.truffleId) continue;
+          
+          // Increment truffle stock
+          try {
+            const truffleRef = doc(db, 'truffles', item.truffleId);
+            const truffleSnap = await getDoc(truffleRef);
+            if (truffleSnap.exists()) {
+              await updateDoc(truffleRef, {
+                stock: increment(Number(item.quantity || 0))
+              });
+            }
+          } catch (err) {
+            console.error("Error returning stock to truffle:", err);
+          }
+
+          // Return stock to batches
+          if ((item as any).batchesUsed) {
+            for (const batch of (item as any).batchesUsed) {
+              if (batch.batchId && batch.batchId !== 'avulso') {
+                try {
+                  const batchRef = doc(db, 'stock_batches', batch.batchId);
+                  const batchSnap = await getDoc(batchRef);
+                  if (batchSnap.exists()) {
+                    await updateDoc(batchRef, {
+                      remainingQuantity: increment(Number(batch.quantity || 0))
+                    });
+                  }
+                } catch (err) {
+                  console.error("Error returning stock to batch:", err);
+                }
+              }
+            }
+          }
+        }
+      }
 
       await updateDoc(doc(db, 'sales', saleId), {
         status: newStatus
@@ -136,9 +178,9 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
       {/* Title block */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-[#141414]/40">Histórico de Transações</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400">Histórico de Transações</p>
           <h3 className="text-3xl font-black tracking-tighter italic">Registro de Vendas</h3>
-          <p className="text-xs text-[#141414]/50 mt-0.5 font-medium">Consulte, altere status de entrega e emita comprovantes</p>
+          <p className="text-xs text-[#141414]/50 dark:text-zinc-400 mt-0.5 font-medium">Consulte, altere status de entrega e emita comprovantes</p>
         </div>
 
         {/* Filters Panel bar */}
@@ -147,7 +189,7 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
           <select
             value={filterPayment}
             onChange={(e) => setFilterPayment(e.target.value as any)}
-            className="p-3 bg-[#F5F5F4] rounded-xl text-[10px] font-black uppercase tracking-widest border-none text-[#141414]/65"
+            className="p-3 bg-[#F5F5F4] dark:bg-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest border-none text-[#141414]/65 dark:text-zinc-400"
           >
             <option value="all">PAGAMENTO: TODOS</option>
             <option value="paid">PAGAS</option>
@@ -158,7 +200,7 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as any)}
-            className="p-3 bg-[#F5F5F4] rounded-xl text-[10px] font-black uppercase tracking-widest border-none text-[#141414]/65"
+            className="p-3 bg-[#F5F5F4] dark:bg-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest border-none text-[#141414]/65 dark:text-zinc-400"
           >
             <option value="all">PEDIDO: TODOS</option>
             <option value="preparing">EM PREPARO</option>
@@ -170,22 +212,22 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
 
       {/* Search Input bar */}
       <div className="relative group">
-        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-[#141414]/20 group-focus-within:text-[#141414] transition-colors" size={20} />
+        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-[#141414]/20 dark:text-zinc-600 group-focus-within:text-[#141414] dark:text-zinc-100 transition-colors" size={20} />
         <input 
           type="text"
           placeholder="Buscar por Nº do pedido, cliente, sabor de produto..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-14 pr-6 py-5 bg-white rounded-[2rem] border border-[#141414]/5 shadow-sm focus:ring-2 focus:ring-[#141414]/10 font-bold transition-all"
+          className="w-full pl-14 pr-6 py-5 bg-white dark:bg-zinc-900 rounded-[2rem] border border-[#141414]/5 dark:border-zinc-50/10 shadow-sm focus:ring-2 focus:ring-[#141414]/10 dark:ring-zinc-50/10 font-bold transition-all"
         />
       </div>
 
       {/* Sales list panel */}
-      <div className="bg-white rounded-[2.5rem] border border-[#141414]/5 shadow-sm overflow-hidden p-8">
+      <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-[#141414]/5 dark:border-zinc-50/10 shadow-sm overflow-hidden p-8">
         <div className="overflow-x-auto -mx-8">
           <table className="w-full text-left border-collapse min-w-[850px]">
             <thead>
-              <tr className="border-b border-[#141414]/5 text-[#141414]/40">
+              <tr className="border-b border-[#141414]/5 dark:border-zinc-50/10 text-[#141414]/40 dark:text-zinc-400">
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest">Abertura / Data</th>
                 <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Pedido / Código</th>
                 <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Sabor / Quantidade</th>
@@ -215,21 +257,21 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
                 };
 
                 return (
-                  <tr key={sale.id} className="hover:bg-[#F5F5F4]/40 transition-colors">
+                  <tr key={sale.id} className="hover:bg-[#F5F5F4] dark:hover:bg-zinc-800/40 transition-colors">
                     {/* Date */}
                     <td className="px-8 py-5 whitespace-nowrap">
-                      <p className="font-bold text-xs text-[#141414] leading-none">{dateStr}</p>
-                      <span className="text-[9px] font-bold text-[#141414]/30 uppercase tracking-widest mt-1.5 inline-block">
+                      <p className="font-bold text-xs text-[#141414] dark:text-zinc-100 leading-none">{dateStr}</p>
+                      <span className="text-[9px] font-bold text-[#141414]/30 dark:text-zinc-500 uppercase tracking-widest mt-1.5 inline-block">
                         {format(sale.date.toDate(), 'EEEE', { locale: ptBR })}
                       </span>
                     </td>
 
                     {/* Pedido Código & ID */}
                     <td className="px-6 py-5 whitespace-nowrap">
-                      <p className="font-black text-sm text-[#141414] leading-none italic">
+                      <p className="font-black text-sm text-[#141414] dark:text-zinc-100 leading-none italic">
                         #{sale.saleNumber || docId.slice(-8).toUpperCase()}
                       </p>
-                      <span className="text-[9px] font-extrabold text-[#141414]/30 uppercase tracking-wider block mt-1.5">
+                      <span className="text-[9px] font-extrabold text-[#141414]/30 dark:text-zinc-500 uppercase tracking-wider block mt-1.5">
                         REGISTRADO POR ID
                       </span>
                     </td>
@@ -239,13 +281,13 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
                       <div className="space-y-1">
                         {sale.items && sale.items.length > 0 ? (
                           sale.items.map((item, idx) => (
-                            <p key={idx} className="font-extrabold text-xs text-[#141414] leading-tight">
-                              {item.quantity}un. <span className="italic font-bold text-[#141414]/60">{item.truffleName}</span>
+                            <p key={idx} className="font-extrabold text-xs text-[#141414] dark:text-zinc-100 leading-tight">
+                              {item.quantity}un. <span className="italic font-bold text-[#141414]/60 dark:text-zinc-300">{item.truffleName}</span>
                             </p>
                           ))
                         ) : (
-                          <p className="font-extrabold text-xs text-[#141414] leading-tight">
-                            {sale.quantity}un. <span className="italic font-bold text-[#141414]/60">{sale.truffleName || 'Produto'}</span>
+                          <p className="font-extrabold text-xs text-[#141414] dark:text-zinc-100 leading-tight">
+                            {sale.quantity}un. <span className="italic font-bold text-[#141414]/60 dark:text-zinc-300">{sale.truffleName || 'Produto'}</span>
                           </p>
                         )}
                       </div>
@@ -253,7 +295,7 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
 
                     {/* Responsável */}
                     <td className="px-6 py-5 whitespace-nowrap">
-                      <p className="font-extrabold text-xs text-[#141414] leading-none">
+                      <p className="font-extrabold text-xs text-[#141414] dark:text-zinc-100 leading-none">
                         {sale.sellerName || 'Sistema'}
                       </p>
                     </td>
@@ -263,7 +305,7 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
                           <User size={12} className="opacity-35" />
-                          <p className="font-extrabold text-xs text-[#141414] italic leading-none">{sale.customerName || 'Consumidor'}</p>
+                          <p className="font-extrabold text-xs text-[#141414] dark:text-zinc-100 italic leading-none">{sale.customerName || 'Consumidor'}</p>
                         </div>
                         
                         {/* Badges line */}
@@ -282,7 +324,7 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
                             {(orderStatusLabels[sale.status as keyof typeof orderStatusLabels] || orderStatusLabels.finished).text}
                           </span>
 
-                          <span className="text-[8px] font-extrabold text-[#141414]/30 bg-[#F5F5F4] px-1.5 py-0.5 rounded">
+                          <span className="text-[8px] font-extrabold text-[#141414]/30 dark:text-zinc-500 bg-[#F5F5F4] dark:bg-zinc-800 px-1.5 py-0.5 rounded">
                             {paymentMethodLabels[sale.paymentMethod || 'dinheiro'] || 'Dinheiro'}
                           </span>
                         </div>
@@ -293,7 +335,7 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
                     <td className="px-6 py-5 text-right whitespace-nowrap">
                       <p className={cn(
                         "font-extrabold text-sm",
-                        sale.status === 'cancelled' ? "text-[#141414]/40 line-through" : "text-[#141414]"
+                        sale.status === 'cancelled' ? "text-[#141414]/40 dark:text-zinc-400 line-through" : "text-[#141414] dark:text-zinc-100"
                       )}>
                         R$ {sale.totalPrice.toFixed(2)}
                       </p>
@@ -325,7 +367,7 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
                         <button
                           onClick={() => downloadReceiptPDF(sale, settings)}
                           className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
-                          title="Emitir Recibo"
+                          title="Emitir Danfe"
                         >
                           <FileText size={16} />
                         </button>
@@ -405,24 +447,24 @@ export const AdminHistory: React.FC<AdminHistoryProps> = ({
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {deletingId && (
-          <div className="fixed inset-0 bg-[#141414]/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-[#141414]/80 dark:bg-zinc-950/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center"
+              className="bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center"
             >
               <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <AlertCircle size={32} />
               </div>
               <h3 className="text-xl font-black tracking-tighter italic mb-2">Remover do Registro?</h3>
-              <p className="text-[#141414]/40 font-bold text-xs mb-8">
+              <p className="text-[#141414]/40 dark:text-zinc-400 font-bold text-xs mb-8">
                 Confirmando, este registro de venda cancelada será removido permanentemente de sua contabilidade.
               </p>
               <div className="flex gap-3">
                 <button 
                   onClick={() => setDeletingId(null)}
-                  className="flex-1 py-4 font-bold text-sm uppercase text-[#141414]/40 hover:text-[#141414] transition-colors"
+                  className="flex-1 py-4 font-bold text-sm uppercase text-[#141414]/40 dark:text-zinc-400 hover:text-[#141414] dark:hover:text-zinc-100 transition-colors"
                 >
                   Cancelar
                 </button>

@@ -194,12 +194,12 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
       {/* Top Section and Tabs */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-[#141414]/40">Relacionamento Comercial</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400">Relacionamento Comercial</p>
           <h3 className="text-3xl font-black tracking-tighter italic">Gestão de Clientes</h3>
         </div>
 
         {/* View Segment Controls */}
-        <div className="flex bg-[#F5F5F4] p-1 rounded-2xl self-start">
+        <div className="flex bg-[#F5F5F4] dark:bg-zinc-800 p-1 rounded-2xl self-start">
           <button
             onClick={() => {
               setActiveTab('list');
@@ -207,7 +207,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
             }}
             className={cn(
               "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
-              activeTab === 'list' && !selectedCustomerId ? "bg-[#141414] text-white shadow-sm" : "text-[#141414]/40 hover:text-[#141414]"
+              activeTab === 'list' && !selectedCustomerId ? "bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm" : "text-[#141414]/40 dark:text-zinc-400 hover:text-[#141414] dark:hover:text-zinc-100"
             )}
           >
             Geral / Lista
@@ -219,7 +219,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
             }}
             className={cn(
               "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
-              activeTab === 'ranking' ? "bg-[#141414] text-white shadow-sm" : "text-[#141414]/40 hover:text-[#141414]"
+              activeTab === 'ranking' ? "bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm" : "text-[#141414]/40 dark:text-zinc-400 hover:text-[#141414] dark:hover:text-zinc-100"
             )}
           >
             🔥 Ranking de Compradores
@@ -232,11 +232,11 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
           {/* Form Side */}
           <div className="xl:col-span-4">
-            <div className="bg-white p-8 rounded-[2.5rem] border border-[#141414]/5 shadow-xl xl:sticky xl:top-8">
+            <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-[#141414]/5 dark:border-zinc-50/10 shadow-xl xl:sticky xl:top-8">
               <div className="flex items-center gap-3 mb-8">
                 <div className={cn(
                   "w-12 h-12 rounded-2xl flex items-center justify-center transition-colorsColor",
-                  editingId ? "bg-blue-50 text-blue-600" : "bg-[#141414] text-white"
+                  editingId ? "bg-blue-50 text-blue-600" : "bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900"
                 )}>
                   {editingId ? <Edit2 size={24} /> : <Plus size={24} />}
                 </div>
@@ -244,7 +244,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
                   <h3 className="text-xl font-black tracking-tighter italic">
                     {editingId ? 'Editar Cliente' : 'Novo Cliente'}
                   </h3>
-                  <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest">
+                  <p className="text-[10px] font-bold text-[#141414]/40 dark:text-zinc-400 uppercase tracking-widest">
                     {editingId ? 'Atualize as informações' : 'Fidelize mais um cliente'}
                   </p>
                 </div>
@@ -252,35 +252,35 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Nome Completo</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400 mb-2">Nome Completo</label>
                   <input 
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ex: João da Silva"
-                    className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 transition-all text-sm"
+                    className="w-full p-4 bg-[#F5F5F4] dark:bg-zinc-800 rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 dark:ring-zinc-50/10 transition-all text-sm"
                     required
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Telefone / WhatsApp</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400 mb-2">Telefone / WhatsApp</label>
                   <input 
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="Ex: (11) 99999-9999"
-                    className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 transition-all text-sm"
+                    className="w-full p-4 bg-[#F5F5F4] dark:bg-zinc-800 rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 dark:ring-zinc-50/10 transition-all text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Anotações / Descrição</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400 mb-2">Anotações / Descrição</label>
                   <textarea 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Preferências, endereço de entrega..."
                     rows={3}
-                    className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 transition-all text-xs"
+                    className="w-full p-4 bg-[#F5F5F4] dark:bg-zinc-800 rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 dark:ring-zinc-50/10 transition-all text-xs"
                   />
                 </div>
 
@@ -289,7 +289,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
                     disabled={isSubmitting}
                     className={cn(
                       "w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg disabled:opacity-50",
-                      editingId ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-[#141414] text-white hover:bg-[#141414]/90"
+                      editingId ? "bg-blue-600 text-white dark:text-zinc-900 hover:bg-blue-700" : "bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-[#141414]/90"
                     )}
                   >
                     {isSubmitting ? 'Processando...' : editingId ? 'Atualizar Dados' : 'Fidelizar Cliente'}
@@ -304,7 +304,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
                         setPhone('');
                         setDescription('');
                       }}
-                      className="w-full py-2 font-bold text-xs uppercase tracking-widest text-[#141414]/40 hover:text-[#141414] transition-colors"
+                      className="w-full py-2 font-bold text-xs uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400 hover:text-[#141414] dark:hover:text-zinc-100 transition-colors"
                     >
                       Cancelar Edição
                     </button>
@@ -317,13 +317,13 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
           {/* List Side */}
           <div className="xl:col-span-8 space-y-6">
             <div className="relative group">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-[#141414]/20 group-focus-within:text-[#141414] transition-colors" size={20} />
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-[#141414]/20 dark:text-zinc-600 group-focus-within:text-[#141414] dark:text-zinc-100 transition-colors" size={20} />
               <input 
                 type="text"
                 placeholder="Buscar clientes cadastrados..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-14 pr-6 py-5 bg-white rounded-[2rem] border border-[#141414]/5 shadow-sm focus:ring-2 focus:ring-[#141414]/10 font-bold transition-all"
+                className="w-full pl-14 pr-6 py-5 bg-white dark:bg-zinc-900 rounded-[2rem] border border-[#141414]/5 dark:border-zinc-50/10 shadow-sm focus:ring-2 focus:ring-[#141414]/10 dark:ring-zinc-50/10 font-bold transition-all"
               />
             </div>
 
@@ -337,10 +337,10 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: i * 0.05 }}
                     key={c.id} 
-                    className="bg-white p-6 rounded-[2rem] border border-[#141414]/5 shadow-sm hover:shadow-md transition-all group"
+                    className="bg-white dark:bg-zinc-900 p-6 rounded-[2rem] border border-[#141414]/5 dark:border-zinc-50/10 shadow-sm hover:shadow-md transition-all group"
                   >
                     <div className="flex items-start justify-between mb-5">
-                      <div className="w-12 h-12 bg-[#F5F5F4] rounded-xl flex items-center justify-center text-[#141414] group-hover:bg-[#141414] group-hover:text-white transition-colors shrink-0">
+                      <div className="w-12 h-12 bg-[#F5F5F4] dark:bg-zinc-800 rounded-xl flex items-center justify-center text-[#141414] dark:text-zinc-100 group-hover:bg-[#141414] dark:hover:bg-zinc-100 group-hover:text-white dark:hover:text-zinc-900 transition-colors shrink-0">
                         <User size={22} />
                       </div>
                       <div className="flex gap-1.5">
@@ -366,39 +366,39 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
                     </div>
 
                     <div className="space-y-1 mb-5">
-                      <h4 className="text-lg font-black tracking-tighter italic text-[#141414]">{c.name}</h4>
+                      <h4 className="text-lg font-black tracking-tighter italic text-[#141414] dark:text-zinc-100">{c.name}</h4>
                       
                       {c.phone ? (
-                        <p className="text-xs font-bold text-[#141414]/50 flex items-center gap-1">
+                        <p className="text-xs font-bold text-[#141414]/50 dark:text-zinc-400 flex items-center gap-1">
                           <Phone size={12} className="opacity-40" /> {c.phone}
                         </p>
                       ) : (
-                        <p className="text-[10px] font-bold text-[#141414]/30 uppercase tracking-widest leading-none">Sem telefone</p>
+                        <p className="text-[10px] font-bold text-[#141414]/30 dark:text-zinc-500 uppercase tracking-widest leading-none">Sem telefone</p>
                       )}
 
                       {c.description && (
-                        <p className="text-xs font-medium text-[#141414]/60 bg-[#F5F5F4]/60 p-2.5 rounded-xl mt-3 border border-[#141414]/5 line-clamp-2">
+                        <p className="text-xs font-medium text-[#141414]/60 dark:text-zinc-300 bg-[#F5F5F4]/60 dark:bg-zinc-800/60 p-2.5 rounded-xl mt-3 border border-[#141414]/5 dark:border-zinc-50/10 line-clamp-2">
                           {c.description}
                         </p>
                       )}
                     </div>
 
                     {/* Quick Stats banner */}
-                    <div className="grid grid-cols-2 gap-2 text-center bg-[#F5F5F4]/40 p-3 rounded-xl border border-[#141414]/5 mb-5 text-[10px] font-bold text-[#141414]/40">
+                    <div className="grid grid-cols-2 gap-2 text-center bg-[#F5F5F4]/40 p-3 rounded-xl border border-[#141414]/5 dark:border-zinc-50/10 mb-5 text-[10px] font-bold text-[#141414]/40 dark:text-zinc-400">
                       <div>
                         <p className="uppercase text-[8px] tracking-wider mb-0.5 opacity-65">Total Comprado</p>
-                        <p className="text-[#141414] font-black text-sm">R$ {c.totalSpent.toFixed(2)}</p>
+                        <p className="text-[#141414] dark:text-zinc-100 font-black text-sm">R$ {c.totalSpent.toFixed(2)}</p>
                       </div>
                       <div>
                         <p className="uppercase text-[8px] tracking-wider mb-0.5 opacity-65">Nº de Pedidos</p>
-                        <p className="text-[#141414] font-black text-sm">{c.salesCount}</p>
+                        <p className="text-[#141414] dark:text-zinc-100 font-black text-sm">{c.salesCount}</p>
                       </div>
                     </div>
 
                     {c.salesCount > 0 && (
                       <button
                         onClick={() => setSelectedCustomerId(c.id)}
-                        className="w-full text-center py-2.5 rounded-xl border border-[#141414]/10 bg-white hover:bg-[#141414] hover:text-white transition-all text-[10px] font-black uppercase tracking-widest"
+                        className="w-full text-center py-2.5 rounded-xl border border-[#141414]/10 dark:border-zinc-50/20 bg-white dark:bg-zinc-900 hover:bg-[#141414] dark:hover:bg-zinc-100 hover:text-white dark:hover:text-zinc-900 transition-all text-[10px] font-black uppercase tracking-widest"
                       >
                         Ver Histórico Detalhado
                       </button>
@@ -417,35 +417,35 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
           <div className="flex items-center gap-3 creative-top-navigation">
             <button
               onClick={() => setSelectedCustomerId(null)}
-              className="px-4 py-2 bg-[#F5F5F4] hover:bg-[#141414] hover:text-white rounded-xl text-xs font-bold transition-all"
+              className="px-4 py-2 bg-[#F5F5F4] dark:bg-zinc-800 hover:bg-[#141414] dark:hover:bg-zinc-100 hover:text-white dark:hover:text-zinc-900 rounded-xl text-xs font-bold transition-all"
             >
               ← Voltar à Lista
             </button>
-            <h4 className="font-extrabold text-[#141414]">Histórico e Perfil de Compras</h4>
+            <h4 className="font-extrabold text-[#141414] dark:text-zinc-100">Histórico e Perfil de Compras</h4>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Customer card profiling */}
-            <div className="bg-white p-6 rounded-[2rem] border border-[#141414]/5 shadow-md flex flex-col justify-between">
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-[2rem] border border-[#141414]/5 dark:border-zinc-50/10 shadow-md flex flex-col justify-between">
               <div>
-                <div className="w-16 h-16 bg-[#141414] text-white rounded-2xl flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl flex items-center justify-center mb-4">
                   <User size={32} />
                 </div>
-                <h3 className="text-2xl font-black text-[#141414] italic">{selectedCustomerDetails.name}</h3>
+                <h3 className="text-2xl font-black text-[#141414] dark:text-zinc-100 italic">{selectedCustomerDetails.name}</h3>
                 {selectedCustomerDetails.phone && (
-                  <p className="text-sm font-bold text-[#141414]/40 flex items-center gap-1.5 mt-1">
+                  <p className="text-sm font-bold text-[#141414]/40 dark:text-zinc-400 flex items-center gap-1.5 mt-1">
                     <Phone size={14} /> {selectedCustomerDetails.phone}
                   </p>
                 )}
                 {selectedCustomerDetails.description && (
-                  <div className="mt-4 p-3 bg-[#F5F5F4] rounded-xl text-xs border border-[#141414]/5 text-[#141414]/60 whitespace-pre-wrap">
-                    <strong className="text-[10px] uppercase font-black tracking-wider text-[#141414]/40 block mb-1">Anotações do Cliente</strong>
+                  <div className="mt-4 p-3 bg-[#F5F5F4] dark:bg-zinc-800 rounded-xl text-xs border border-[#141414]/5 dark:border-zinc-50/10 text-[#141414]/60 dark:text-zinc-300 whitespace-pre-wrap">
+                    <strong className="text-[10px] uppercase font-black tracking-wider text-[#141414]/40 dark:text-zinc-400 block mb-1">Anotações do Cliente</strong>
                     {selectedCustomerDetails.description}
                   </div>
                 )}
               </div>
 
-              <div className="pt-6 border-t border-[#141414]/5 mt-6 grid grid-cols-2 gap-4 text-center">
+              <div className="pt-6 border-t border-[#141414]/5 dark:border-zinc-50/10 mt-6 grid grid-cols-2 gap-4 text-center">
                 <div className="p-3 bg-green-50 rounded-xl">
                   <p className="text-[8px] font-bold text-green-700 uppercase tracking-wider">Total Investido</p>
                   <p className="text-green-800 font-black text-lg mt-0.5">R$ {selectedCustomerDetails.totalSpent.toFixed(2)}</p>
@@ -458,7 +458,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
             </div>
 
             {/* Purchases Logs */}
-            <div className="md:col-span-2 bg-white p-8 rounded-[2rem] border border-[#141414]/5 shadow-sm space-y-6">
+            <div className="md:col-span-2 bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-[#141414]/5 dark:border-zinc-50/10 shadow-sm space-y-6">
               <h4 className="text-lg font-black tracking-tighter italic flex items-center gap-2">
                 <History size={18} /> Histórico de Pedidos
               </h4>
@@ -467,13 +467,13 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
                 {selectedCustomerDetails.history.map((sale) => (
                   <div 
                     key={sale.id} 
-                    className="p-4 rounded-xl border border-[#141414]/5 bg-[#FAF9F5] hover:bg-[#F5F5F4] transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
+                    className="p-4 rounded-xl border border-[#141414]/5 dark:border-zinc-50/10 bg-[#FAF9F5] dark:bg-zinc-800 hover:bg-[#F5F5F4] dark:bg-zinc-800 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-black text-[#141414] italic">Pedido #{sale.saleNumber}</span>
-                        <span className="text-[#141414]/15">•</span>
-                        <span className="text-[10px] font-bold text-[#141414]/40">
+                        <span className="text-xs font-black text-[#141414] dark:text-zinc-100 italic">Pedido #{sale.saleNumber}</span>
+                        <span className="text-[#141414]/15 dark:text-zinc-600">•</span>
+                        <span className="text-[10px] font-bold text-[#141414]/40 dark:text-zinc-400">
                           {format(sale.date.toDate(), 'dd/MM/yyyy HH:mm')}
                         </span>
                       </div>
@@ -482,12 +482,12 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
                       <div className="mt-1.5 space-y-0.5">
                         {sale.items && sale.items.length > 0 ? (
                           sale.items.map((item, id) => (
-                            <p key={id} className="text-xs text-[#141414]/70 font-semibold">
+                            <p key={id} className="text-xs text-[#141414]/70 dark:text-zinc-300 font-semibold">
                               {item.quantity}x {item.truffleName} (R$ {item.pricePerUnit.toFixed(2)})
                             </p>
                           ))
                         ) : (
-                          <p className="text-xs text-[#141414]/70 font-semibold">
+                          <p className="text-xs text-[#141414]/70 dark:text-zinc-300 font-semibold">
                             {sale.quantity}x {sale.truffleName}
                           </p>
                         )}
@@ -495,7 +495,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
                     </div>
 
                     <div className="text-right self-end sm:self-center">
-                      <p className="text-sm font-black text-[#141414]">R$ {sale.totalPrice.toFixed(2)}</p>
+                      <p className="text-sm font-black text-[#141414] dark:text-zinc-100">R$ {sale.totalPrice.toFixed(2)}</p>
                       <span className={cn(
                         "text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded",
                         sale.paymentStatus === 'paid' ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
@@ -513,19 +513,19 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
 
       {/* Buying Customer Champions Ranking */}
       {activeTab === 'ranking' && (
-        <div className="bg-white rounded-[2.5rem] border border-[#141414]/5 shadow-sm overflow-hidden p-8">
+        <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-[#141414]/5 dark:border-zinc-50/10 shadow-sm overflow-hidden p-8">
           <div className="mb-8">
             <h4 className="text-xl font-black tracking-tight italic flex items-center gap-2">
               <TrendingUp size={22} className="text-amber-500" />Ranking dos Melhores Compradores
             </h4>
-            <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest mt-0.5">Nossos parceiros e clientes mais frequentes</p>
+            <p className="text-[10px] font-bold text-[#141414]/40 dark:text-zinc-400 uppercase tracking-widest mt-0.5">Nossos parceiros e clientes mais frequentes</p>
           </div>
 
           <div className="space-y-4 max-w-2xl mx-auto">
             {customerRanking.map((cust, idx) => (
               <div 
                 key={cust.id}
-                className="flex items-center justify-between p-5 rounded-2xl bg-[#F5F5F4]/60 border border-[#141414]/5 hover:bg-white hover:shadow-md transition-all relative overflow-hidden"
+                className="flex items-center justify-between p-5 rounded-2xl bg-[#F5F5F4]/60 dark:bg-zinc-800/60 border border-[#141414]/5 dark:border-zinc-50/10 hover:bg-white dark:bg-zinc-900 hover:shadow-md transition-all relative overflow-hidden"
               >
                 {/* Ranking Position Accent */}
                 {idx < 3 && (
@@ -534,22 +534,22 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
 
                 <div className="flex items-center gap-4">
                   <div className={cn(
-                    "w-10 h-10 rounded-xl font-black italic flex items-center justify-center shrink-0 border border-[#141414]/5",
+                    "w-10 h-10 rounded-xl font-black italic flex items-center justify-center shrink-0 border border-[#141414]/5 dark:border-zinc-50/10",
                     idx === 0 ? "bg-amber-100 text-amber-700 text-lg" : 
                     idx === 1 ? "bg-slate-100 text-slate-700 text-md" : 
-                    idx === 2 ? "bg-red-50 text-red-700 text-sm" : "bg-white text-[#141414]/40 text-xs"
+                    idx === 2 ? "bg-red-50 text-red-700 text-sm" : "bg-white dark:bg-zinc-900 text-[#141414]/40 dark:text-zinc-400 text-xs"
                   )}>
                     {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
                   </div>
 
                   <div>
-                    <h5 className="font-black text-sm text-[#141414] leading-tight italic">{cust.name}</h5>
-                    <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest mt-0.5">{cust.salesCount} Pedidos Concluídos</p>
+                    <h5 className="font-black text-sm text-[#141414] dark:text-zinc-100 leading-tight italic">{cust.name}</h5>
+                    <p className="text-[10px] font-bold text-[#141414]/40 dark:text-zinc-400 uppercase tracking-widest mt-0.5">{cust.salesCount} Pedidos Concluídos</p>
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <p className="text-[8px] font-bold text-[#141414]/40 uppercase tracking-wider">Total Comprado</p>
+                  <p className="text-[8px] font-bold text-[#141414]/40 dark:text-zinc-400 uppercase tracking-wider">Total Comprado</p>
                   <p className="font-extrabold text-base text-[#111] mt-0.5">R$ {cust.totalSpent.toFixed(2)}</p>
                 </div>
               </div>
@@ -568,24 +568,24 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, sal
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {deletingId && (
-          <div className="fixed inset-0 bg-[#141414]/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-[#141414]/80 dark:bg-zinc-950/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center"
+              className="bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center"
             >
               <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <AlertCircle size={32} />
               </div>
               <h3 className="text-xl font-black tracking-tighter italic mb-2">Excluir Cadastro?</h3>
-              <p className="text-[#141414]/40 font-bold text-xs mb-8">
+              <p className="text-[#141414]/40 dark:text-zinc-400 font-bold text-xs mb-8">
                 Confirmando, este perfil de cliente será deletado. O histórico de compras do mesmo persistirá ligado ao seu nome em vendas efetuadas.
               </p>
               <div className="flex gap-3">
                 <button 
                   onClick={() => setDeletingId(null)}
-                  className="flex-1 py-4 font-bold text-sm uppercase text-[#141414]/40 hover:text-[#141414] transition-colors"
+                  className="flex-1 py-4 font-bold text-sm uppercase text-[#141414]/40 dark:text-zinc-400 hover:text-[#141414] dark:hover:text-zinc-100 transition-colors"
                 >
                   Cancelar
                 </button>

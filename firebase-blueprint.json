@@ -20,7 +20,8 @@
         "name": { "type": "string" },
         "price": { "type": "number" },
         "stock": { "type": "integer" },
-        "ownerId": { "type": "string" }
+        "ownerId": { "type": "string" },
+        "active": { "type": "boolean" }
       },
       "required": ["name", "price", "stock", "ownerId"]
     },

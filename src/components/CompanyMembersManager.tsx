@@ -10,7 +10,7 @@ import {
   CheckCircle,
   X 
 } from 'lucide-react';
-import { Company, CompanyMember, CompanyPermission } from '../types';
+import { Company, CompanyMember, CompanyPermission, UserSettings } from '../types';
 import { getMemberPermissions } from '../permissions';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -19,14 +19,31 @@ import { cn } from '../utils';
 interface CompanyMembersManagerProps {
   companyId: string;
   currentUserEmail: string | null;
+  settings: UserSettings | null;
 }
 
-export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ companyId, currentUserEmail }) => {
+export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ companyId, currentUserEmail, settings }) => {
   const [company, setCompany] = useState<Company | null>(null);
   const [isInviting, setIsInviting] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
   const [editingMember, setEditingMember] = useState<CompanyMember | null>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newCompanyName, setNewCompanyName] = useState('');
+
+  const handleUpdateCompanyName = async () => {
+    if (!company || !newCompanyName.trim()) return;
+    try {
+      await updateDoc(doc(db, 'companies', company.id), {
+        name: newCompanyName.trim()
+      });
+      setCompany({ ...company, name: newCompanyName.trim() });
+      setIsEditingName(false);
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao atualizar nome da empresa.');
+    }
+  };
 
   useEffect(() => {
     if (!companyId) return;
@@ -178,23 +195,23 @@ export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ co
   return (
     <div className="space-y-8">
       {/* Header & Stats */}
-      <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-[#141414]/5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#141414]/5">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-[#141414] text-white rounded-[1.5rem] flex items-center justify-center font-black text-2xl italic tracking-tighter">
-              {(company.name || 'Empresa').charAt(0).toUpperCase()}
+      <div className="bg-white dark:bg-zinc-900 p-6 md:p-8 rounded-[2rem] border border-[#141414]/5 dark:border-zinc-50/10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#141414]/5 dark:border-zinc-50/10">
+                    <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-[1.5rem] flex items-center justify-center font-black text-2xl italic tracking-tighter shrink-0">
+              {(settings?.businessName || company.name || 'Sua Empresa').charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-2xl font-black italic tracking-tighter text-[#141414]">{company.name || 'Sua Empresa'}</h2>
-              <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest mt-0.5">Gestão de Equipe e Sócios</p>
+              <h2 className="text-2xl font-black italic tracking-tighter text-[#141414] dark:text-zinc-100">{settings?.businessName || company.name || 'Sua Empresa'}</h2>
+              <p className="text-[10px] font-bold text-[#141414]/40 dark:text-zinc-400 uppercase tracking-widest mt-0.5">Gestão de Equipe e Sócios</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 px-6 py-3 bg-[#F5F5F4] rounded-2xl">
-            <Users size={24} className="text-[#141414]/40" />
+          <div className="flex items-center gap-4 px-6 py-3 bg-[#F5F5F4] dark:bg-zinc-800 rounded-2xl">
+            <Users size={24} className="text-[#141414]/40 dark:text-zinc-400" />
             <div>
               <p className="font-black text-lg leading-tight">{memberList.length} / 6</p>
-              <p className="text-[9px] font-bold uppercase tracking-widest text-[#141414]/40">Membros</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400">Membros</p>
             </div>
           </div>
         </div>
@@ -202,11 +219,11 @@ export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ co
         {/* Members List */}
         <div className="mt-8 space-y-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-black text-[#141414] uppercase tracking-wide text-xs">Membros da Empresa</h3>
+            <h3 className="font-black text-[#141414] dark:text-zinc-100 uppercase tracking-wide text-xs">Membros da Empresa</h3>
             {memberList.length < 6 && (
               <button
                 onClick={() => setIsInviting(true)}
-                className="flex items-center gap-2 bg-[#141414] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-black transition-colors"
+                className="flex items-center gap-2 bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-black dark:hover:bg-zinc-300 transition-colors"
               >
                 <UserPlus size={14} />
                 Adicionar Sócio
@@ -216,22 +233,22 @@ export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ co
 
           <div className="grid grid-cols-1 gap-4">
             {memberList.map((m, i) => (
-              <div key={m?.email || i} className="flex items-center justify-between p-4 bg-[#F5F5F4] rounded-2xl border border-transparent hover:border-[#141414]/5 transition-all gap-4">
+              <div key={m?.email || i} className="flex items-center justify-between p-4 bg-[#F5F5F4] dark:bg-zinc-800 rounded-2xl border border-transparent hover:border-[#141414]/5 dark:border-zinc-50/10 transition-all gap-4">
                 <div className="flex items-center gap-4 min-w-0 flex-1">
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shrink-0",
-                    m.role === 'owner' ? "bg-amber-100 text-amber-600" : "bg-[#141414] text-white"
+                    m.role === 'owner' ? "bg-amber-100 text-amber-600" : "bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900"
                   )}>
                     {(m.name || m.email || 'M').charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="font-black text-[#141414] leading-tight flex items-center gap-2 truncate">
+                    <h4 className="font-black text-[#141414] dark:text-zinc-100 leading-tight flex items-center gap-2 truncate">
                       <span className="truncate">{m.name || m.email}</span>
                       {m.role === 'owner' && <span className="text-[8px] px-2 py-0.5 bg-amber-100 text-amber-600 rounded-md uppercase tracking-wider shrink-0">Proprietário</span>}
                       {m.status === 'pending' && <span className="text-[8px] px-2 py-0.5 bg-blue-100 text-blue-600 rounded-md uppercase tracking-wider shrink-0">Pendente</span>}
                     </h4>
-                    <p className="text-[10px] font-bold text-[#141414]/40 truncate">{m.email}</p>
-                    {m.lastAccess && <p className="text-[9px] font-medium text-[#141414]/30 mt-1 flex items-center gap-1 truncate"><Clock size={10} className="shrink-0" /> Último acesso: {new Date(m.lastAccess).toLocaleDateString()}</p>}
+                    <p className="text-[10px] font-bold text-[#141414]/40 dark:text-zinc-400 truncate">{m.email}</p>
+                    {m.lastAccess && <p className="text-[9px] font-medium text-[#141414]/30 dark:text-zinc-500 mt-1 flex items-center gap-1 truncate"><Clock size={10} className="shrink-0" /> Último acesso: {new Date(m.lastAccess).toLocaleDateString()}</p>}
                   </div>
                 </div>
 
@@ -240,14 +257,14 @@ export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ co
                     <>
                       <button 
                         onClick={() => setEditingMember(m)}
-                        className="p-2 text-[#141414]/40 hover:text-blue-600 bg-white rounded-lg transition-colors border border-[#141414]/5"
+                        className="p-2 text-[#141414]/40 dark:text-zinc-400 hover:text-blue-600 bg-white dark:bg-zinc-900 rounded-lg transition-colors border border-[#141414]/5 dark:border-zinc-50/10"
                         title="Editar Permissões"
                       >
                         <Shield size={16} />
                       </button>
                       <button 
                         onClick={() => handleRemoveMember(m.email)}
-                        className="p-2 text-[#141414]/40 hover:text-red-600 bg-white rounded-lg transition-colors border border-[#141414]/5"
+                        className="p-2 text-[#141414]/40 dark:text-zinc-400 hover:text-red-600 bg-white dark:bg-zinc-900 rounded-lg transition-colors border border-[#141414]/5 dark:border-zinc-50/10"
                         title="Remover Membro"
                       >
                         <Trash2 size={16} />
@@ -264,24 +281,24 @@ export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ co
       {/* Invite Modal */}
       {isInviting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative">
-            <button onClick={() => setIsInviting(false)} className="absolute top-6 right-6 p-2 text-[#141414]/40 hover:text-[#141414]"><X size={20} /></button>
+          <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative">
+            <button onClick={() => setIsInviting(false)} className="absolute top-6 right-6 p-2 text-[#141414]/40 dark:text-zinc-400 hover:text-[#141414] dark:hover:text-zinc-100"><X size={20} /></button>
             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
               <Mail size={24} />
             </div>
-            <h2 className="text-2xl font-black italic tracking-tight text-[#141414] mb-2">Convidar Sócio</h2>
-            <p className="text-xs font-medium text-[#141414]/60 mb-6">O membro entrará automaticamente na sua empresa ao realizar login com este e-mail.</p>
+            <h2 className="text-2xl font-black italic tracking-tight text-[#141414] dark:text-zinc-100 mb-2">Convidar Sócio</h2>
+            <p className="text-xs font-medium text-[#141414]/60 dark:text-zinc-300 mb-6">O membro entrará automaticamente na sua empresa ao realizar login com este e-mail.</p>
             
             <form onSubmit={handleInvite} className="space-y-4">
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-[#141414]/40 ml-4 mb-1 block">Nome do Membro</label>
-                <input required type="text" value={inviteName} onChange={e => setInviteName(e.target.value)} className="w-full bg-[#F5F5F4] px-6 py-4 rounded-2xl font-bold text-[#141414] outline-none" placeholder="Ex: João da Silva" />
+                <label className="text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400 ml-4 mb-1 block">Nome do Membro</label>
+                <input required type="text" value={inviteName} onChange={e => setInviteName(e.target.value)} className="w-full bg-[#F5F5F4] dark:bg-zinc-800 px-6 py-4 rounded-2xl font-bold text-[#141414] dark:text-zinc-100 outline-none" placeholder="Ex: João da Silva" />
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-[#141414]/40 ml-4 mb-1 block">E-mail do Membro</label>
-                <input required type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="w-full bg-[#F5F5F4] px-6 py-4 rounded-2xl font-bold text-[#141414] outline-none" placeholder="joao@email.com" />
+                <label className="text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400 ml-4 mb-1 block">E-mail do Membro</label>
+                <input required type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="w-full bg-[#F5F5F4] dark:bg-zinc-800 px-6 py-4 rounded-2xl font-bold text-[#141414] dark:text-zinc-100 outline-none" placeholder="joao@email.com" />
               </div>
-              <button type="submit" className="w-full mt-4 bg-[#141414] text-white py-4 rounded-xl font-black uppercase text-xs tracking-wider">
+              <button type="submit" className="w-full mt-4 bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 py-4 rounded-xl font-black uppercase text-xs tracking-wider">
                 Enviar Convite
               </button>
             </form>
@@ -292,15 +309,15 @@ export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ co
       {/* Edit Permissions Modal */}
       {editingMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-[2rem] w-full max-w-2xl p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
-            <button onClick={() => setEditingMember(null)} className="absolute top-6 right-6 p-2 text-[#141414]/40 hover:text-[#141414] bg-[#F5F5F4] rounded-full"><X size={20} /></button>
+          <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-2xl p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
+            <button onClick={() => setEditingMember(null)} className="absolute top-6 right-6 p-2 text-[#141414]/40 dark:text-zinc-400 hover:text-[#141414] dark:hover:text-zinc-100 bg-[#F5F5F4] dark:bg-zinc-800 rounded-full"><X size={20} /></button>
             <div className="flex items-center gap-4 mb-8 pr-12">
-              <div className="w-12 h-12 bg-[#141414] text-white rounded-2xl flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl flex items-center justify-center shrink-0">
                 <Shield size={24} />
               </div>
               <div className="truncate">
-                <h2 className="text-xl md:text-2xl font-black italic tracking-tight text-[#141414] truncate">{editingMember.name || editingMember.email}</h2>
-                <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest mt-0.5 truncate">{editingMember.email}</p>
+                <h2 className="text-xl md:text-2xl font-black italic tracking-tight text-[#141414] dark:text-zinc-100 truncate">{editingMember.name || editingMember.email}</h2>
+                <p className="text-[10px] font-bold text-[#141414]/40 dark:text-zinc-400 uppercase tracking-widest mt-0.5 truncate">{editingMember.email}</p>
               </div>
             </div>
 
@@ -322,8 +339,8 @@ export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ co
                 };
                 
                 return (
-                  <div key={group.category} className="bg-[#F5F5F4] p-4 md:p-5 rounded-2xl border border-[#141414]/5">
-                    <h4 className="font-black text-[#141414] uppercase tracking-wider text-xs mb-3 flex items-center gap-2 pb-2 border-b border-[#141414]/5">
+                  <div key={group.category} className="bg-[#F5F5F4] dark:bg-zinc-800 p-4 md:p-5 rounded-2xl border border-[#141414]/5 dark:border-zinc-50/10">
+                    <h4 className="font-black text-[#141414] dark:text-zinc-100 uppercase tracking-wider text-xs mb-3 flex items-center gap-2 pb-2 border-b border-[#141414]/5 dark:border-zinc-50/10">
                       {categoryTranslations[group.category.toLowerCase()] || group.category.toUpperCase()}
                     </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -337,7 +354,7 @@ export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ co
                           move: 'Mover'
                         };
                         return (
-                          <label key={permKey} className={cn("flex items-center gap-3 p-3 rounded-xl shadow-sm border cursor-pointer transition-colors", editingMember.permissions?.[permKey] ? "bg-blue-50 border-blue-500/30" : "bg-white border-[#141414]/5 hover:border-blue-500/30")}>
+                          <label key={permKey} className={cn("flex items-center gap-3 p-3 rounded-xl shadow-sm border cursor-pointer transition-colors", editingMember.permissions?.[permKey] ? "bg-blue-50 border-blue-500/30" : "bg-white dark:bg-zinc-900 border-[#141414]/5 dark:border-zinc-50/10 hover:border-blue-500/30")}>
                             <input 
                               type="checkbox" 
                               checked={editingMember.permissions?.[permKey] || false}
@@ -350,7 +367,7 @@ export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ co
                               })}
                               className="accent-blue-600 w-4 h-4 rounded"
                             />
-                            <span className="text-xs font-bold text-[#141414]">{actionTranslations[action.toLowerCase()] || action}</span>
+                            <span className="text-xs font-bold text-[#141414] dark:text-zinc-100">{actionTranslations[action.toLowerCase()] || action}</span>
                           </label>
                         );
                       })}
@@ -361,7 +378,7 @@ export const CompanyMembersManager: React.FC<CompanyMembersManagerProps> = ({ co
 
               <button 
                 onClick={() => handleUpdatePermissions(editingMember)}
-                className="w-full mt-6 bg-[#141414] hover:bg-black text-white py-4 rounded-xl font-black uppercase text-xs tracking-wider flex items-center justify-center gap-2 transition-colors"
+                className="w-full mt-6 bg-[#141414] dark:bg-zinc-100 hover:bg-black dark:hover:bg-zinc-300 text-white dark:text-zinc-900 py-4 rounded-xl font-black uppercase text-xs tracking-wider flex items-center justify-center gap-2 transition-colors"
               >
                 <CheckCircle size={16} /> Salvar Permissões
               </button>

@@ -1,36 +1,14 @@
-import React, { useState } from 'react';
-import { ShieldAlert, ArrowRight, Fingerprint } from 'lucide-react';
+const fs = require('fs');
+let code = fs.readFileSync('src/components/PasswordGate.tsx', 'utf-8');
 
-interface PasswordGateProps {
-  onAuthenticated: () => void;
-  title: string;
-  description: string;
-}
-
-export const PasswordGate: React.FC<PasswordGateProps> = ({ 
-  onAuthenticated, 
-  title, 
-  description 
-}) => {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === 'admin') {
-      onAuthenticated();
-    } else {
-      setError(true);
-      setPassword('');
-    }
-  };
-
-    const handleBiometricAuth = async () => {
+if (!code.includes('Fingerprint')) {
+  code = code.replace(
+    "import { ShieldAlert, ArrowRight } from 'lucide-react';",
+    "import { ShieldAlert, ArrowRight, Fingerprint } from 'lucide-react';"
+  );
+  
+  const uiReplacement = `  const handleBiometricAuth = async () => {
     try {
-      if (window.self !== window.top) {
-        alert("A biometria por digital está bloqueada na visualização de prévia. Por favor, clique no botão 'Open in New Tab' (ícone de janela) no topo da tela para abrir o sistema em uma aba independente e usar a digital.");
-        return;
-      }
       if (!window.PublicKeyCredential) {
         alert("Autenticação biométrica não suportada neste dispositivo/navegador.");
         return;
@@ -70,12 +48,8 @@ export const PasswordGate: React.FC<PasswordGateProps> = ({
         onAuthenticated();
       }
     } catch (err) {
-      if (err instanceof Error && (err.name === 'NotAllowedError' || err.message.includes('feature is not enabled'))) {
-        alert("A biometria está bloqueada na visualização atual. Para usar a digital, clique no botão 'Open in New Tab' (ícone de janela) no topo da tela do AI Studio para abrir o aplicativo em uma nova aba.");
-      } else {
-        console.error(err);
-        alert("Autenticação biométrica falhou ou foi cancelada.");
-      }
+      console.error(err);
+      alert("Autenticação biométrica falhou ou foi cancelada.");
     }
   };
 
@@ -121,6 +95,8 @@ export const PasswordGate: React.FC<PasswordGateProps> = ({
           </button>
         </div>
       </form>
-    </div>
-  );
-};
+    </div>`;
+    
+  code = code.replace(/return \([\s\S]*?<\/div>\s*\);\s*\};\s*$/, uiReplacement + '\n  );\n};\n');
+  fs.writeFileSync('src/components/PasswordGate.tsx', code);
+}

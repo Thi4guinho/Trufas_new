@@ -95,6 +95,7 @@ export interface Truffle {
   cost: number; // cost of production
   stock: number;
   ownerId: string;
+  active?: boolean; // default true
 }
 
 export interface Customer {

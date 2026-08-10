@@ -1,5 +1,6 @@
 {
   "name": "TruffleTech Manager",
-  "description": "Advanced truffle sales management system with progressive pricing, credit control, and administrative security hierarchy.",
-  "requestFramePermissions": []
+  "description": "Advanced truffle sales management system with progressive pricing, credit control, and administrative security hierarchy. Features voice-based order registration via Gemini API.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

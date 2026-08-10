@@ -217,7 +217,7 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
       {/* Top Banner and Quick Add */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-[#141414]/40">Módulo de Gestão Financeira</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400">Módulo de Gestão Financeira</p>
           <h3 className="text-3xl font-black tracking-tighter italic">Fluxo de Caixa</h3>
         </div>
         <button
@@ -225,7 +225,7 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
             setShowAddForm(!showAddForm);
             if (!category) setCategory(type === 'income' ? incomeCategories[0] : expenseCategories[0]);
           }}
-          className="flex items-center justify-center gap-2 bg-[#141414] text-white px-6 py-4 rounded-2xl font-bold hover:bg-[#141414]/90 transition-all shadow-md shrink-0 self-start md:self-auto"
+          className="flex items-center justify-center gap-2 bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 px-6 py-4 rounded-2xl font-bold hover:bg-[#141414]/90 transition-all shadow-md shrink-0 self-start md:self-auto"
         >
           <Plus size={18} />
           {showAddForm ? 'Fechar Cadastro' : 'Novo Lançamento'}
@@ -239,15 +239,15 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden bg-white rounded-[2rem] border border-[#141414]/5 shadow-xl"
+            className="overflow-hidden bg-white dark:bg-zinc-900 rounded-[2rem] border border-[#141414]/5 dark:border-zinc-50/10 shadow-xl"
           >
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
               <h4 className="text-lg font-black tracking-tight italic">Registrar Entrada / Saída Manual</h4>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Tipo de Lançamento</label>
-                  <div className="flex bg-[#F5F5F4] p-1.5 rounded-2xl">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400 mb-2">Tipo de Lançamento</label>
+                  <div className="flex bg-[#F5F5F4] dark:bg-zinc-800 p-1.5 rounded-2xl">
                     <button
                       type="button"
                       onClick={() => {
@@ -256,7 +256,7 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
                       }}
                       className={cn(
                         "flex-1 py-2 rounded-xl text-xs font-black uppercase transition-all",
-                        type === 'income' ? "bg-green-600 text-white shadow-sm" : "text-[#141414]/40 hover:text-[#141414]"
+                        type === 'income' ? "bg-green-600 text-white shadow-sm" : "text-[#141414]/40 dark:text-zinc-400 hover:text-[#141414] dark:hover:text-zinc-100"
                       )}
                     >
                       Entrada (+)
@@ -269,7 +269,7 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
                       }}
                       className={cn(
                         "flex-1 py-2 rounded-xl text-xs font-black uppercase transition-all",
-                        type === 'expense' ? "bg-red-600 text-white shadow-sm" : "text-[#141414]/40 hover:text-[#141414]"
+                        type === 'expense' ? "bg-red-600 text-white shadow-sm" : "text-[#141414]/40 dark:text-zinc-400 hover:text-[#141414] dark:hover:text-zinc-100"
                       )}
                     >
                       Saída (-)
@@ -278,7 +278,7 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Valor (R$)</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400 mb-2">Valor (R$)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -286,16 +286,16 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
                     required
                     value={Number.isNaN(value as number) ? '' : value}
                     onChange={(e) => setValue(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                    className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10"
+                    className="w-full p-4 bg-[#F5F5F4] dark:bg-zinc-800 rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 dark:ring-zinc-50/10"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Categoria</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400 mb-2">Categoria</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 transition-all"
+                    className="w-full p-4 bg-[#F5F5F4] dark:bg-zinc-800 rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 dark:ring-zinc-50/10 transition-all"
                   >
                     {type === 'income' 
                       ? incomeCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)
@@ -305,25 +305,25 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Responsável</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400 mb-2">Responsável</label>
                   <input
                     type="text"
                     placeholder="Nome do responsável"
                     value={responsible}
                     onChange={(e) => setResponsible(e.target.value)}
-                    className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10"
+                    className="w-full p-4 bg-[#F5F5F4] dark:bg-zinc-800 rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 dark:ring-zinc-50/10"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 mb-2">Descrição / Detalhes</label>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-[#141414]/40 dark:text-zinc-400 mb-2">Descrição / Detalhes</label>
                 <input
                   type="text"
                   placeholder="Ex: Compra de chocolate meio amargo Melken 2kg"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full p-4 bg-[#F5F5F4] rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10"
+                  className="w-full p-4 bg-[#F5F5F4] dark:bg-zinc-800 rounded-2xl font-bold border-none focus:ring-2 focus:ring-[#141414]/10 dark:ring-zinc-50/10"
                 />
               </div>
 
@@ -331,14 +331,14 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="px-6 py-4 text-[#141414]/40 font-bold text-sm hover:text-[#141414] transition-colors"
+                  className="px-6 py-4 text-[#141414]/40 dark:text-zinc-400 font-bold text-sm hover:text-[#141414] dark:hover:text-zinc-100 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-8 py-4 bg-[#141414] text-white rounded-2xl font-black text-sm hover:bg-[#141414]/90 transition-all disabled:opacity-50"
+                  className="px-8 py-4 bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl font-black text-sm hover:bg-[#141414]/90 transition-all disabled:opacity-50"
                 >
                   {isSubmitting ? 'Salvando...' : 'Confirmar Lançamento'}
                 </button>
@@ -350,32 +350,32 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
 
       {/* Stats Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-[#141414]/5 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-[#141414]/5 dark:border-zinc-50/10 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center">
               <ArrowUpRight size={20} />
             </div>
-            <p className="text-xs font-bold text-[#141414]/40 uppercase tracking-widest">Total Recebido (Entradas)</p>
+            <p className="text-xs font-bold text-[#141414]/40 dark:text-zinc-400 uppercase tracking-widest">Total Recebido (Entradas)</p>
           </div>
           <h4 className="text-2xl font-black text-green-600">R$ {stats.totalIncomes.toFixed(2)}</h4>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-[#141414]/5 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-[#141414]/5 dark:border-zinc-50/10 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
               <ArrowDownRight size={20} />
             </div>
-            <p className="text-xs font-bold text-[#141414]/40 uppercase tracking-widest">Total Gasto (Saídas)</p>
+            <p className="text-xs font-bold text-[#141414]/40 dark:text-zinc-400 uppercase tracking-widest">Total Gasto (Saídas)</p>
           </div>
           <h4 className="text-2xl font-black text-red-600">R$ {stats.totalExpenses.toFixed(2)}</h4>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-[#141414]/5 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-[#141414]/5 dark:border-zinc-50/10 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <TrendingUp size={20} />
             </div>
-            <p className="text-xs font-bold text-[#141414]/40 uppercase tracking-widest">Saldo Líquido Atual</p>
+            <p className="text-xs font-bold text-[#141414]/40 dark:text-zinc-400 uppercase tracking-widest">Saldo Líquido Atual</p>
           </div>
           <h4 className={cn(
             "text-2xl font-black",
@@ -387,14 +387,14 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-[2.5rem] border border-[#141414]/5 shadow-sm overflow-hidden p-8">
+      <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-[#141414]/5 dark:border-zinc-50/10 shadow-sm overflow-hidden p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h4 className="text-xl font-black tracking-tight italic">Movimentações do Caixa</h4>
-            <p className="text-[10px] font-bold text-[#141414]/40 uppercase tracking-widest mt-0.5">Histórico financeiro por período</p>
+            <p className="text-[10px] font-bold text-[#141414]/40 dark:text-zinc-400 uppercase tracking-widest mt-0.5">Histórico financeiro por período</p>
           </div>
           
-          <div className="flex items-center gap-2 bg-[#F5F5F4] p-1 rounded-2xl overflow-x-auto">
+          <div className="flex items-center gap-2 bg-[#F5F5F4] dark:bg-zinc-800 p-1 rounded-2xl overflow-x-auto">
             {[
               { id: 'today', label: 'Hoje' },
               { id: 'week', label: 'Semana' },
@@ -407,7 +407,7 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
                 onClick={() => setFilterPeriod(period.id as any)}
                 className={cn(
                   "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all",
-                  filterPeriod === period.id ? "bg-[#141414] text-white shadow-sm" : "text-[#141414]/40 hover:text-[#141414]"
+                  filterPeriod === period.id ? "bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm" : "text-[#141414]/40 dark:text-zinc-400 hover:text-[#141414] dark:hover:text-zinc-100"
                 )}
               >
                 {period.label}
@@ -419,7 +419,7 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
         <div className="overflow-x-auto -mx-8">
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
-              <tr className="border-b border-[#141414]/5 text-[#141414]/30">
+              <tr className="border-b border-[#141414]/5 dark:border-zinc-50/10 text-[#141414]/30 dark:text-zinc-500">
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest">Data / Hora</th>
                 <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Lançamento / Categoria</th>
                 <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Responsável</th>
@@ -429,9 +429,9 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
             </thead>
             <tbody className="divide-y divide-[#141414]/5">
               {filteredRecords.map((rec) => (
-                <tr key={rec.id || Math.random().toString()} className="hover:bg-[#F5F5F4]/50 transition-colors">
+                <tr key={rec.id || Math.random().toString()} className="hover:bg-[#F5F5F4] dark:hover:bg-zinc-800/50 transition-colors">
                   <td className="px-8 py-5 whitespace-nowrap">
-                    <p className="font-bold text-sm text-[#141414]">
+                    <p className="font-bold text-sm text-[#141414] dark:text-zinc-100">
                       {format(rec.date.toDate(), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
                     </p>
                   </td>
@@ -445,10 +445,10 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
                         {rec.type === 'income' ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
                       </div>
                       <div>
-                        <p className="font-black text-sm text-[#141414] leading-tight shrink-0 max-w-[300px] truncate">
+                        <p className="font-black text-sm text-[#141414] dark:text-zinc-100 leading-tight shrink-0 max-w-[300px] truncate">
                           {rec.description}
                         </p>
-                        <span className="flex items-center gap-1 mt-0.5 text-[9px] font-bold text-[#141414]/30 uppercase tracking-widest">
+                        <span className="flex items-center gap-1 mt-0.5 text-[9px] font-bold text-[#141414]/30 dark:text-zinc-500 uppercase tracking-widest">
                           <Tags size={10} /> {rec.category}
                         </span>
                       </div>
@@ -456,7 +456,7 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
                   </td>
 
                   <td className="px-6 py-5">
-                    <span className="flex items-center gap-1.5 text-xs font-bold text-[#141414]/60">
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-[#141414]/60 dark:text-zinc-300">
                       <User size={12} /> {rec.responsible}
                     </span>
                   </td>
@@ -480,7 +480,7 @@ export const CashflowManager: React.FC<CashflowManagerProps> = ({ cashflow, sale
                         <Trash2 size={16} />
                       </button>
                     ) : (
-                      <span className="text-[8px] font-black bg-[#141414]/5 text-[#141414]/40 px-2 py-1 rounded-full uppercase tracking-wider">
+                      <span className="text-[8px] font-black bg-[#141414]/5 dark:bg-zinc-50/5 text-[#141414]/40 dark:text-zinc-400 px-2 py-1 rounded-full uppercase tracking-wider">
                         Automático
                       </span>
                     )}

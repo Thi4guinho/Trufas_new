@@ -56,6 +56,7 @@ import { AuditLogManager } from './components/AuditLogManager';
 import { PasswordGate } from './components/PasswordGate';
 import { Login } from './components/Login';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ThemeToggle } from './components/ThemeToggle';
 
 export default function App() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -84,7 +85,7 @@ export default function App() {
     history: 'Histórico de Vendas',
     cashflow: 'Fluxo de Caixa',
     audit_logs: 'Histórico de Ações (Auditoria)',
-    truffles: 'Estoque / Produtos',
+    truffles: 'Registro de Produtos',
     customers: 'Fidelização / Clientes',
     settings: 'Configurações do Sistema'
   };
@@ -328,11 +329,11 @@ export default function App() {
 
   if (!isAuthReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#E4E3E0]">
+      <div className="min-h-screen flex items-center justify-center bg-[#E4E3E0] dark:bg-zinc-950">
         <motion.div 
           animate={{ scale: [1, 1.1, 1], rotate: [0, 180, 360] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
-          className="w-12 h-12 bg-[#141414] rounded-2xl"
+          className="w-12 h-12 bg-[#141414] dark:bg-zinc-100 rounded-2xl"
         />
       </div>
     );
@@ -342,16 +343,16 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="h-screen bg-[#E4E3E0] flex font-sans overflow-hidden">
+      <div className="h-screen bg-[#E4E3E0] dark:bg-zinc-950 flex font-sans overflow-hidden">
         {/* Sidebar Navigation */}
-        <aside className="w-80 bg-white border-r border-[#141414]/5 p-8 flex flex-col hidden lg:flex shrink-0">
+        <aside className="w-80 bg-white dark:bg-zinc-900 border-r border-[#141414]/5 dark:border-zinc-50/10 p-8 flex flex-col hidden lg:flex shrink-0">
           <div className="flex items-center gap-3 mb-10 shrink-0">
-            <div className="w-10 h-10 bg-[#141414] text-white rounded-xl flex items-center justify-center shadow-lg font-black italic text-lg tracking-tight">
+            <div className="w-10 h-10 bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl flex items-center justify-center shadow-lg font-black italic text-lg tracking-tight">
               T
             </div>
             <div>
               <h1 className="text-xl font-black tracking-tighter italic">TruffleTech</h1>
-              <p className="text-[9px] font-bold text-[#141414]/40 uppercase tracking-widest leading-none">Gestão de Vendas</p>
+              <p className="text-[9px] font-bold text-[#141414]/40 dark:text-zinc-400 uppercase tracking-widest leading-none">Gestão de Vendas</p>
             </div>
           </div>
 
@@ -362,9 +363,8 @@ export default function App() {
               { id: 'pending', label: 'Contas a Receber', icon: DollarSign, show: hasPermission(currentMember, 'sales', 'view') || hasPermission(currentMember, 'finance', 'view') },
               { id: 'history', label: 'Registro de Vendas', icon: History, show: hasPermission(currentMember, 'sales', 'view') },
               { id: 'cashflow', label: 'Fluxo de Caixa', icon: TrendingDown, show: hasPermission(currentMember, 'finance', 'view') },
-              { id: 'truffles', label: 'Estoque / Produtos', icon: Package, show: hasPermission(currentMember, 'truffles', 'view') || hasPermission(currentMember, 'stock', 'view') },
+              { id: 'truffles', label: 'Produtos', icon: Package, show: hasPermission(currentMember, 'truffles', 'view') },
               { id: 'customers', label: 'Meus Clientes', icon: UserIcon, show: hasPermission(currentMember, 'customers', 'view') },
-              { id: 'production', label: 'Lotes de Estoque', icon: Package, show: hasPermission(currentMember, 'truffles', 'view') || hasPermission(currentMember, 'stock', 'view') },
               { id: 'audit_logs', label: 'Ações / Auditoria', icon: ShieldCheck, show: hasPermission(currentMember, 'reports', 'view') },
               { id: 'settings', label: 'Configurações', icon: SettingsIcon, show: currentMember?.role === 'owner' || hasPermission(currentMember, 'settings', 'view') || hasPermission(currentMember, 'settings', 'members') },
             ].filter(i => i.show).map((item) => (
@@ -377,8 +377,8 @@ export default function App() {
                 className={cn(
                   "w-full flex items-center gap-4 py-3 px-4 rounded-xl font-bold transition-all text-sm",
                   activeTab === item.id 
-                    ? "bg-[#141414] text-white shadow-md" 
-                    : "text-[#141414]/40 hover:bg-[#F5F5F4] hover:text-[#141414]"
+                    ? "bg-[#141414] dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md" 
+                    : "text-[#141414]/40 dark:text-zinc-400 hover:bg-[#F5F5F4] dark:bg-zinc-800 hover:text-[#141414] dark:hover:text-zinc-100"
                 )}
               >
                 <item.icon size={18} />
@@ -387,10 +387,10 @@ export default function App() {
             ))}
           </nav>
 
-          <div className="pt-6 border-t border-[#141414]/5 mt-auto shrink-0 space-y-4">
+          <div className="pt-6 border-t border-[#141414]/5 dark:border-zinc-50/10 mt-auto shrink-0 space-y-4">
             <div className="flex items-center gap-3 px-2">
-              <div className="w-10 h-10 bg-[#F5F5F4] rounded-full flex items-center justify-center shrink-0">
-                <UserIcon size={20} className="text-[#141414]/40" />
+              <div className="w-10 h-10 bg-[#F5F5F4] dark:bg-zinc-800 rounded-full flex items-center justify-center shrink-0">
+                <UserIcon size={20} className="text-[#141414]/40 dark:text-zinc-400" />
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className="font-black text-sm truncate leading-tight">{profile?.displayName || user.email}</p>
@@ -418,18 +418,21 @@ export default function App() {
             {/* Top header navigation desk */}
             <header className="flex items-center justify-between mb-8 lg:mb-10">
               <div>
-                <h1 className="text-2xl md:text-3xl font-black tracking-tighter italic text-[#141414] leading-tight">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tighter italic text-[#141414] dark:text-zinc-100 leading-tight">
                   {tabLabels[activeTab]}
                 </h1>
-                <p className="text-[#141414]/40 font-bold uppercase tracking-[0.2em] text-[8px] md:text-[9px] mt-1">
+                <p className="text-[#141414]/40 dark:text-zinc-400 font-bold uppercase tracking-[0.2em] text-[8px] md:text-[9px] mt-1">
                   {format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                 </p>
               </div>
 
-              {/* Status Indicator */}
-              <div className="flex items-center gap-2 bg-white/70 backdrop-blur-md px-4 py-2 rounded-full border border-[#141414]/5">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
-                <span className="text-[9px] font-black text-[#141414] uppercase tracking-wide">CAIXA ABERTO</span>
+                            <div className="flex items-center gap-3">
+                <ThemeToggle />
+                {/* Status Indicator */}
+                <div className="hidden sm:flex items-center gap-2 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md px-4 py-2 rounded-full border border-[#141414]/5 dark:border-zinc-50/10">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
+                  <span className="text-[9px] font-black text-[#141414] dark:text-zinc-100 uppercase tracking-wide">CAIXA ABERTO</span>
+                </div>
               </div>
             </header>
 
@@ -456,8 +459,9 @@ export default function App() {
                 )}
 
                 {activeTab === 'sales' && (
-                  <SalesManager 
-                    truffles={truffles} 
+                  <SalesManager
+                    sales={sales}
+                    truffles={truffles}
                     customers={customers}
                     settings={settings} 
                     profile={profile}
@@ -531,7 +535,7 @@ export default function App() {
                     <PasswordGate 
                       onAuthenticated={() => setIsAdminAuthenticated(true)} 
                       title="Área Administrativa"
-                      description="Insira a senha de administrador para acessar as configurações do sistema, estoques, clientes e exportar relatórios."
+                      description="Insira a senha de administrador para acessar as configurações do sistema, clientes e exportar relatórios."
                     />
                   ) : (
                     <div className="space-y-6">
@@ -561,7 +565,7 @@ export default function App() {
         </main>
 
         {/* Mobile Navigation bar */}
-        <nav className="lg:hidden fixed bottom-6 left-4 right-4 bg-white/80 backdrop-blur-xl border border-[#141414]/5 p-2 flex justify-around items-center z-50 rounded-[2rem] shadow-2xl">
+        <nav className="lg:hidden fixed bottom-6 left-4 right-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-[#141414]/5 dark:border-zinc-50/10 p-2 flex justify-around items-center z-50 rounded-[2rem] shadow-2xl">
           {[
             { id: 'dashboard', icon: LayoutDashboard, label: 'Início', show: true },
             { id: 'sales', icon: ShoppingCart, label: 'Venda', show: hasPermission(currentMember, 'sales', 'create') },
@@ -577,13 +581,13 @@ export default function App() {
               }}
               className={cn(
                 "flex flex-col items-center gap-1 p-3 rounded-2xl transition-all relative",
-                activeTab === item.id ? "text-[#141414]" : "text-[#141414]/30"
+                activeTab === item.id ? "text-[#141414] dark:text-zinc-100" : "text-[#141414]/30 dark:text-zinc-500"
               )}
             >
               {activeTab === item.id && (
                 <motion.div 
                   layoutId="activeTabMobile"
-                  className="absolute inset-0 bg-[#141414]/5 rounded-2xl -z-10"
+                  className="absolute inset-0 bg-[#141414]/5 dark:bg-zinc-50/5 rounded-2xl -z-10"
                 />
               )}
               <item.icon size={18} />

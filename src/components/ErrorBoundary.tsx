@@ -24,7 +24,7 @@ export const ErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ childre
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-red-100">
+        <div className="bg-white dark:bg-zinc-900 p-8 rounded-2xl shadow-xl max-w-md w-full border border-red-100">
           <div className="flex items-center gap-3 text-red-600 mb-4">
             <AlertCircle size={32} />
             <h2 className="text-xl font-bold">Algo deu errado</h2>
